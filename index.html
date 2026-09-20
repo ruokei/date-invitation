@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff6f2">
+  <title>你愿意和我一起度过这个周末吗？</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+
+    :root {
+      color-scheme: light;
+      --ink: #47253f;
+      --muted: #72576d;
+      --berry: #a43f72;
+      --berry-dark: #71234d;
+      --blush: #f5cedd;
+      --cream: #fff7fb;
+      --line: rgba(139, 77, 120, .24);
+      --shadow: 0 28px 80px rgba(70, 32, 83, .22);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 16% 12%, rgba(255, 204, 224, .92), transparent 25rem),
+        radial-gradient(circle at 84% 84%, rgba(204, 184, 244, .72), transparent 28rem),
+        linear-gradient(145deg, #fff7fb 0%, #f8efff 50%, #fff0f5 100%);
+      font-family: "DM Sans", system-ui, sans-serif;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      width: clamp(13rem, 30vw, 28rem);
+      aspect-ratio: 1;
+      border: 2px solid rgba(153, 61, 112, .1);
+      border-radius: 50%;
+      transform: rotate(-14deg);
+    }
+
+    body::before { left: -4rem; bottom: -5rem; }
+    body::after { right: -4rem; top: -7rem; transform: rotate(15deg); }
+
+    .floating-icons { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+    .floating-icons svg { position: absolute; width: 2.4rem; height: 2.4rem; color: var(--berry); opacity: .2; animation: icon-drift 5s ease-in-out infinite alternate; }
+    .floating-icons svg:nth-child(1) { top: 8%; left: 8%; width: 2rem; }
+    .floating-icons svg:nth-child(2) { top: 16%; right: 10%; width: 2.7rem; animation-delay: -.8s; }
+    .floating-icons svg:nth-child(3) { top: 45%; left: 4%; width: 2.4rem; animation-delay: -1.7s; }
+    .floating-icons svg:nth-child(4) { top: 52%; right: 5%; width: 1.9rem; animation-delay: -2.4s; }
+    .floating-icons svg:nth-child(5) { bottom: 10%; left: 12%; width: 2.5rem; animation-delay: -3.1s; }
+    .floating-icons svg:nth-child(6) { bottom: 8%; right: 12%; width: 2.1rem; animation-delay: -1.2s; }
+    .floating-icons svg:nth-child(7) { top: 30%; left: 18%; width: 1.5rem; animation-delay: -3.8s; }
+    .floating-icons svg:nth-child(8) { top: 34%; right: 18%; width: 1.6rem; animation-delay: -2s; }
+    .icon { width: 1.05em; height: 1.05em; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.14em; }
+    button .icon { margin-left: .4em; }
+
+    main { width: min(100%, 760px); }
+
+    .card {
+      position: relative;
+      min-height: 590px;
+      padding: clamp(28px, 6vw, 60px);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .72);
+      border-radius: 32px;
+      background: rgba(255, 250, 254, .62);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 28px;
+      color: var(--berry);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before { content: ""; width: 28px; height: 1px; background: currentColor; }
+
+    h1, h2 {
+      max-width: 580px;
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 700;
+      line-height: .99;
+      letter-spacing: -.045em;
+    }
+
+    h1 { font-size: clamp(3rem, 10vw, 6.5rem); }
+    h2 { font-size: clamp(2.4rem, 7vw, 4.8rem); }
+
+    .accent { color: var(--berry); font-style: italic; }
+
+    .lead {
+      max-width: 510px;
+      margin: 24px 0 34px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.18rem);
+      line-height: 1.7;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+    button {
+      min-height: 52px;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 25px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #d36a83; outline-offset: 3px; }
+    .primary { color: white; background: rgba(151, 45, 101, .82); box-shadow: 0 12px 26px rgba(130, 42, 94, .24); backdrop-filter: blur(10px); }
+    .primary:hover { background: rgba(113, 35, 77, .92); }
+    .secondary { color: var(--berry-dark); border: 1px solid rgba(164, 63, 114, .24); background: rgba(255, 255, 255, .48); backdrop-filter: blur(10px); }
+    .invitation-actions { position: relative; width: min(100%, 440px); min-height: 170px; margin-inline: auto; }
+    .invitation-actions .primary { position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+    .invitation-actions .primary:hover { transform: translateX(-50%) translateY(-2px); }
+    #soft-no { position: absolute; top: 68px; left: 50%; animation: float-centered 1.5s ease-in-out infinite; transition: top .18s ease, left .18s ease, background .18s ease; }
+    #soft-no.is-moving { animation-name: float-button; }
+    .text-button { color: var(--muted); background: transparent; padding-inline: 8px; }
+
+    .progress { display: flex; gap: 7px; margin: 0 0 38px; }
+    .progress span { width: 28px; height: 5px; border-radius: 9px; background: var(--line); }
+    .progress span.done { background: var(--berry); }
+
+    .step { display: none; animation: rise .35s ease both; }
+    .step.active { display: block; }
+
+    .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 30px; }
+    .choice { position: relative; }
+    .choice input { position: absolute; opacity: 0; pointer-events: none; }
+    .choice label {
+      display: grid;
+      min-height: 128px;
+      align-content: center;
+      gap: 7px;
+      padding: 22px;
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255,255,255,.46);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: border .18s, background .18s, transform .18s;
+    }
+    .choice label:hover { transform: translateY(-2px); border-color: #c77b8d; }
+    .choice input:checked + label { border-color: var(--berry); background: rgba(245, 206, 221, .68); box-shadow: inset 0 0 0 1px var(--berry); }
+    .choice input:focus-visible + label { outline: 3px solid #d36a83; outline-offset: 3px; }
+    .choice strong { font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; }
+    .choice small { color: var(--muted); font-size: .9rem; }
+
+    .field { display: grid; gap: 9px; margin-top: 22px; }
+    label { font-weight: 700; }
+    select {
+      appearance: none;
+      width: 100%;
+      min-height: 52px;
+      border: 1.5px solid rgba(164, 63, 114, .2);
+      border-radius: 13px;
+      padding: 13px 46px 13px 15px;
+      color: var(--ink);
+      background:
+        linear-gradient(45deg, transparent 50%, var(--berry) 50%) calc(100% - 20px) 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, var(--berry) 50%, transparent 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, rgba(255,255,255,.82), rgba(250,231,242,.68));
+      backdrop-filter: blur(10px);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 5px 14px rgba(130,42,94,.06);
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    select:hover { border-color: rgba(151, 45, 101, .5); transform: translateY(-1px); }
+    select:focus-visible { box-shadow: 0 0 0 4px rgba(211,106,131,.16), 0 8px 20px rgba(130,42,94,.1); }
+    select option { color: var(--ink); background: #fff8fc; }
+    .hint { margin: 0; color: var(--muted); font-size: .86rem; }
+
+    .extras { display: grid; gap: 28px; margin-top: 28px; }
+    .option-section { display: grid; gap: 16px; }
+    .option-section h3 { margin: 0; color: var(--berry-dark); font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; }
+    .option-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .option-grid .field { margin: 0; padding: 13px; border: 1px solid rgba(255,255,255,.74); border-radius: 18px; background: rgba(255,255,255,.28); box-shadow: 0 8px 20px rgba(130,42,94,.05); transition: border-color .18s ease, background .18s ease, transform .18s ease; }
+    .option-grid .field:focus-within { border-color: rgba(151,45,101,.35); background: rgba(255,255,255,.5); transform: translateY(-2px); }
+    .option-grid .field label { color: var(--berry-dark); font-size: .86rem; letter-spacing: .02em; }
+    .extras-panel[hidden] { display: none; }
+
+    .time-fieldset { margin: 26px 0 0; padding: 0; border: 0; }
+    .time-fieldset legend { margin-bottom: 12px; font-weight: 700; }
+    .time-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 9px; max-height: 235px; padding: 4px; overflow-y: auto; }
+    .time-choice { position: relative; }
+    .time-choice input { position: absolute; opacity: 0; pointer-events: none; }
+    .time-choice label {
+      display: grid;
+      min-height: 46px;
+      place-items: center;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .48);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: border .18s, background .18s, transform .18s;
+    }
+    .time-choice label:hover { transform: translateY(-2px); border-color: #c77b8d; }
+    .time-choice input:checked + label { color: white; border-color: var(--berry); background: rgba(151, 45, 101, .84); }
+    .time-choice input:focus-visible + label { outline: 3px solid #d36a83; outline-offset: 2px; }
+
+    .summary { display: grid; gap: 12px; margin: 28px 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 700; }
+
+    .tiny-note { margin-top: 20px; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+    .success-mark { width: 4rem; height: 4rem; margin: 0 0 20px; color: var(--berry); }
+    .error { min-height: 1.2em; margin: 12px 0 0; color: var(--berry-dark); font-size: .9rem; font-weight: 700; }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+    @keyframes float-button { 0%, 100% { transform: translateY(-5px); } 50% { transform: translateY(7px); } }
+    @keyframes float-centered { 0%, 100% { transform: translate(-50%, -5px); } 50% { transform: translate(-50%, 7px); } }
+    @keyframes icon-drift { from { transform: translateY(-8px) rotate(-5deg); } to { transform: translateY(10px) rotate(7deg); } }
+
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+      .card { min-height: 620px; padding: 28px 22px; border-radius: 24px; }
+      .choices { grid-template-columns: 1fr; }
+      .option-grid { grid-template-columns: 1fr; }
+      .choice label { min-height: 102px; }
+      .actions button { flex: 1 1 auto; }
+      .summary div { display: grid; gap: 3px; }
+      .summary dd { text-align: left; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      #soft-no { animation: none !important; }
+      .floating-icons svg { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-icons" aria-hidden="true">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="6.2" r="3"/><circle cx="17.5" cy="10.2" r="3"/><circle cx="15.4" cy="16.6" r="3"/><circle cx="8.6" cy="16.6" r="3"/><circle cx="6.5" cy="10.2" r="3"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="m12 4 .9 3.1L16 8l-3.1.9L12 12l-.9-3.1L8 8l3.1-.9L12 4ZM18 14l.6 2.4L21 17l-2.4.6L18 20l-.6-2.4L15 17l2.4-.6L18 14Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h18M12 3v18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>
+  </div>
+  <main>
+    <form class="card" id="date-form" novalidate>
+      <p class="eyebrow"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>一个藏在心里的小问题</p>
+
+      <section class="step active" data-step="0">
+        <h1>你愿意和我一起度过<span class="accent">这个周末</span>吗？</h1>
+        <p class="lead">想把 9 月 26 日或 27 日留给我们——选一个你喜欢的安排，一起让这个周末变得更甜一点。</p>
+        <div class="actions invitation-actions" id="invitation-actions">
+          <button class="primary" type="button" data-next>好呀，一起来计划<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></button>
+          <button class="secondary" type="button" id="soft-no">让我想一想</button>
+        </div>
+      </section>
+
+      <section class="step" data-step="1">
+        <svg class="icon success-mark" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/><path d="M9 11.5h.01M15 11.5h.01M9 15c1.8 1.3 4.2 1.3 6 0"/></svg>
+        <h2>你答应啦！<span class="accent">我好开心</span></h2>
+        <p class="lead">谢谢你愿意和我一起度过这个周末。想到很快就能见到你，我已经开始期待啦！</p>
+        <div class="actions"><button class="primary" type="button" data-next>继续计划约会<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></button><button class="text-button" type="button" data-back>返回</button></div>
+      </section>
+
+      <section class="step" data-step="2">
+        <div class="progress" aria-label="第 1 步，共 4 步"><span class="done"></span><span></span><span></span><span></span></div>
+        <h2>选一个属于我们的<span class="accent">日子</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></h2>
+        <p class="lead">两个日子，一个让人期待的约会。</p>
+        <div class="choices">
+          <div class="choice"><input id="day-26" name="date" type="radio" value="2026 年 9 月 26 日，星期六"><label for="day-26"><strong>9 月 26 日</strong><small>星期六 · 开启周末模式</small></label></div>
+          <div class="choice"><input id="day-27" name="date" type="radio" value="2026 年 9 月 27 日，星期日"><label for="day-27"><strong>9 月 27 日</strong><small>星期日 · 慢慢享受甜蜜</small></label></div>
+        </div>
+        <p class="error" role="alert"></p>
+        <div class="actions"><button class="primary" type="button" data-next>选择时间</button><button class="text-button" type="button" data-back>返回</button></div>
+      </section>
+
+      <section class="step" data-step="3">
+        <div class="progress" aria-label="第 2 步，共 4 步"><span class="done"></span><span class="done"></span><span></span><span></span></div>
+        <h2>我们几点<span class="accent">见面？</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></h2>
+        <p class="lead">选一个最适合你的时间。</p>
+        <fieldset class="time-fieldset"><legend>见面时间</legend><div class="time-choices" id="time-choices"></div><p class="hint">可选择上午 8 点至晚上 10 点，每 30 分钟一个时段。</p></fieldset>
+        <p class="error" role="alert"></p>
+        <div class="actions"><button class="primary" type="button" data-next>选择约会方式</button><button class="text-button" type="button" data-back>返回</button></div>
+      </section>
+
+      <section class="step" data-step="4">
+        <div class="progress" aria-label="第 3 步，共 4 步"><span class="done"></span><span class="done"></span><span class="done"></span><span></span></div>
+        <h2>想要怎样的<span class="accent">约会？</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg></h2>
+        <p class="lead">出去走走，还是在家享受悠闲时光？</p>
+        <div class="choices">
+          <div class="choice"><input id="out" name="plan" type="radio" value="一起出去约会"><label for="out"><strong>一起出去玩 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></strong><small>好好打扮、散散步，再吃点喜欢的</small></label></div>
+          <div class="choice"><input id="home" name="plan" type="radio" value="一起待在家里"><label for="home"><strong>一起待在家 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-9Z"/></svg></strong><small>舒服的衣服、喜欢的食物，慢慢享受</small></label></div>
+        </div>
+        <p class="error" role="alert"></p>
+        <div class="actions"><button class="primary" type="button" data-next>选择额外选项</button><button class="text-button" type="button" data-back>返回</button></div>
+      </section>
+
+      <section class="step" data-step="5">
+        <div class="progress" aria-label="第 4 步，共 4 步"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span></div>
+        <h2>我们的<span class="accent">额外选项</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg></h2>
+        <p class="lead">把约会的小细节也一起决定好。</p>
+        <div class="extras">
+          <section class="option-section extras-panel" id="out-options">
+            <h3>出去玩的安排</h3>
+            <div class="option-grid">
+              <div class="field"><label for="location">想去哪里？</label><select id="location" name="location"><option>🛍️ 商场</option><option>🌳 公园</option><option>☕ 咖啡店</option><option>🎁 你来选个惊喜</option><option>🗺️ 不止一个地方</option></select></div>
+              <div class="field"><label for="cuisine">想吃什么料理？</label><select id="cuisine" name="cuisine"><option>🥢 中餐</option><option>🍣 日料</option><option>🍲 韩式</option><option>🍝 西餐</option><option>🍲 火锅</option><option>🍰 甜品和咖啡</option><option>💬 超过一个请找宝贝讨论</option></select></div>
+              <div class="field"><label for="out-activity">想做什么活动？</label><select id="out-activity" name="outActivity"><option>🧶 Tufting</option><option>🧗 攀岩</option><option>🏺 陶瓷</option><option>🧩 拼豆</option><option>🛍️ 逛街</option><option>🎬 看电影</option><option>🖼️ 看展览</option><option>🏸 去运动</option><option>✨ 交给你安排</option></select></div>
+              <div class="field"><label for="outfit">当天穿搭？</label><select id="outfit" name="outfit"><option>👕 舒服休闲</option><option>✨ 认真打扮一下</option><option>🎨 穿同色系</option><option>💑 情侣装</option><option>💗 你喜欢就好</option></select></div>
+              <div class="field"><label for="arrival">谁先到？</label><select id="arrival" name="arrival"><option>🙋 我先到等你</option><option>🙋‍♀️ 你先到等我</option><option>🤝 一起到</option><option>⏰ 谁先到谁等一下</option></select></div>
+              <div class="field"><label for="transport">交通模式？</label><select id="transport" name="transport"><option>🚗 我载你</option><option>🚆 搭火车</option><option>📍 你来找我，然后我载你</option></select></div>
+            </div>
+          </section>
+
+          <section class="option-section extras-panel" id="home-options" hidden>
+            <h3>待在家的安排</h3>
+            <div class="option-grid">
+              <div class="field"><label for="whose-home">去谁的家？</label><select id="whose-home" name="whoseHome"><option>🏠 去你家</option><option>🛋️ 来我家</option><option>💭 当天再决定</option></select></div>
+              <div class="field"><label for="home-food">想吃什么？</label><select id="home-food" name="homeFood"><option>🥢 中式</option><option>🍝 西式</option><option>🍜 台式</option><option>🍣 日式</option><option>🌶️ 泰式</option><option>🍲 韩式</option><option>🥡 外卖</option><option>🍿 零食和甜点</option><option>🍳 一起做饭</option><option>💬 超过一个请找宝贝讨论</option></select></div>
+              <div class="field"><label for="home-activity">在家做什么？</label><select id="home-activity" name="homeActivity"><option>📺 追剧</option><option>😴 休息睡觉</option><option>🗺️ 一起规划一下之后去哪里玩</option><option>🧁 做饭或烘焙</option><option>🎵 听歌聊天</option><option>☁️ 什么都不安排</option></select></div>
+              <div class="field"><label for="home-outfit">在家穿什么？</label><select id="home-outfit" name="homeOutfit"><option>🧸 舒服的居家服</option><option>🌙 睡衣模式</option><option>🎨 穿同色系</option><option>😏 你懂的</option></select></div>
+              <div class="field"><label for="home-prep">谁来准备？</label><select id="home-prep" name="homePrep"><option>🙋 我来准备</option><option>🙋‍♀️ 你来准备</option><option>🤝 一起准备</option><option>🎁 互相给个惊喜</option></select></div>
+            </div>
+          </section>
+
+          <section class="option-section">
+            <h3>我们的小默契</h3>
+            <div class="option-grid">
+              <div class="field"><label for="first-words">见面第一句想说？</label><select id="first-words" name="firstWords"><option>💌 好久不见，我想你了</option><option>🥰 终于见到你啦</option><option>💋 宝贝亲一个</option><option>🫂 先抱一下再说</option><option>🎈 到时候自然发挥</option></select></div>
+              <div class="field"><label for="goodbye">结束时想怎样告别？</label><select id="goodbye" name="goodbye"><option>🫂 抱一下</option><option>💋 先问问，再决定要不要亲一下</option><option>🥰 亲亲抱抱举高高</option></select></div>
+              <div class="field"><label for="hands">今天要牵手吗？</label><select id="hands" name="hands"><option>🤝 想牵手</option><option>🙈 等你主动</option></select></div>
+              <div class="field"><label for="initiative">今天谁主动？</label><select id="initiative" name="initiative"><option>🙋 我主动一点</option><option>💗 你主动一点</option><option>🔄 轮流主动</option></select></div>
+              <div class="field"><label for="phones">手机要放一边吗？</label><select id="phones" name="phones"><option>📵 约会时尽量不按手机</option><option>📸 拍完照就收起来</option><option>🍽️ 吃饭时放一边</option></select></div>
+              <div class="field"><label for="distance">今天的距离怎么样？</label><select id="distance" name="distance"><option>💞 靠近一点</option><option>🥰 贴贴</option><option>🌸 可以有一小小点的距离</option></select></div>
+              <div class="field"><label for="photos">拍照计划？</label><select id="photos" name="photos"><option>📸 多拍一些留念</option><option>🌸 拍几张自然照</option><option>💕 至少一张合照</option></select></div>
+            </div>
+          </section>
+        </div>
+        <p class="error" role="alert"></p>
+        <div class="actions"><button class="primary" type="button" id="review">确认约会安排</button><button class="text-button" type="button" data-back>返回</button></div>
+      </section>
+
+      <section class="step" data-step="6">
+        <svg class="icon success-mark" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        <h2>要把安排<span class="accent">发送给他吗？</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg></h2>
+        <p class="lead">确认一下我们的约会安排，然后发送给他吧。想调整的话，也可以随时返回修改。</p>
+        <dl class="summary"><div><dt>日期</dt><dd id="summary-date"></dd></div><div><dt>时间</dt><dd id="summary-time"></dd></div><div><dt>安排</dt><dd id="summary-plan"></dd></div><div><dt>专属安排</dt><dd id="summary-specific"></dd></div><div><dt>我们的小默契</dt><dd id="summary-common"></dd></div></dl>
+        <div class="actions"><button class="primary" type="submit">发送给他<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg></button><button class="text-button" type="button" data-back>返回修改</button></div>
+      </section>
+    </form>
+  </main>
+
+  <script>
+    // 填入你的 GitHub 邮箱
+    const HOST_EMAIL = "modquack@gmail.com";
+
+    const form = document.querySelector("#date-form");
+    const steps = [...document.querySelectorAll(".step")];
+    let current = 0;
+
+    for (let minutes = 8 * 60; minutes <= 22 * 60; minutes += 30) {
+      const hour = String(Math.floor(minutes / 60)).padStart(2, "0");
+      const minute = String(minutes % 60).padStart(2, "0");
+      const value = `${hour}:${minute}`;
+      const wrapper = document.createElement("div");
+      const input = document.createElement("input");
+      const label = document.createElement("label");
+      wrapper.className = "time-choice";
+      input.type = "radio";
+      input.name = "time";
+      input.id = `time-${hour}-${minute}`;
+      input.value = value;
+      label.htmlFor = input.id;
+      label.textContent = new Date(`2000-01-01T${value}`).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+      wrapper.append(input, label);
+      document.querySelector("#time-choices").append(wrapper);
+    }
+
+    function showStep(index) {
+      steps[current].classList.remove("active");
+      current = index;
+      if (current === 5) updateExtraOptions();
+      steps[current].classList.add("active");
+      const heading = steps[current].querySelector("h1, h2");
+      heading?.setAttribute("tabindex", "-1");
+      heading?.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function error(message) {
+      const target = steps[current].querySelector(".error");
+      if (target) target.textContent = message;
+      return false;
+    }
+
+    function validStep() {
+      steps[current].querySelector(".error")?.replaceChildren();
+      if (current === 2 && !form.date.value) return error("请先选择其中一个日期。");
+      if (current === 3 && !form.time.value) return error("请选择见面时间。");
+      if (current === 4 && !form.plan.value) return error("请选择出去约会或待在家里。");
+      return true;
+    }
+
+    function updateExtraOptions() {
+      const stayingHome = form.plan.value === "一起待在家里";
+      document.querySelector("#out-options").hidden = stayingHome;
+      document.querySelector("#home-options").hidden = !stayingHome;
+    }
+
+    function extraDetails() {
+      const value = name => form.elements[name].value;
+      const specific = form.plan.value === "一起出去约会"
+        ? `地点：${value("location")}；料理：${value("cuisine")}；活动：${value("outActivity")}；穿搭：${value("outfit")}；谁先到：${value("arrival")}；交通：${value("transport")}`
+        : `地点：${value("whoseHome")}；吃什么：${value("homeFood")}；活动：${value("homeActivity")}；穿搭：${value("homeOutfit")}；准备：${value("homePrep")}`;
+      const common = `第一句话：${value("firstWords")}；告别：${value("goodbye")}；牵手：${value("hands")}；主动：${value("initiative")}；手机：${value("phones")}；距离：${value("distance")}；拍照：${value("photos")}`;
+      return { specific, common };
+    }
+
+    document.querySelectorAll("[data-next]").forEach(button => button.addEventListener("click", () => {
+      if (validStep()) showStep(current + 1);
+    }));
+    document.querySelectorAll("[data-back]").forEach(button => button.addEventListener("click", () => showStep(current - 1)));
+
+    const softNo = document.querySelector("#soft-no");
+    const invitationActions = document.querySelector("#invitation-actions");
+    const dodgeLabels = [
+      "再考虑一下嘛～", "很久没见了", "有点想你了", "这个周末想见你", "我知道你也想见我",
+      "你想做什么都陪你", "保证不会让你后悔", "答应我好不好", "还不如直接答应我", "最近总会想到你",
+      "吃什么都由你决定", "给我一点你的时间吧", "就一个美好的晚上？", "拜托拜托啦", "好啦，这次让你点到",
+      "哎呀，又被你点到啦", "你越点，我跑得越快", "差一点点就抓到我啦", "别装啦，你明明很期待", "再点一下就答应我嘛"
+    ];
+    let dodges = 0;
+
+    softNo.addEventListener("click", () => {
+      const message = dodgeLabels[dodges % dodgeLabels.length];
+      dodges += 1;
+      softNo.textContent = message;
+      const minimumTop = invitationActions.querySelector(".primary").offsetHeight + 16;
+      softNo.classList.add("is-moving");
+      softNo.style.right = "auto";
+      softNo.style.left = `${Math.random() * Math.max(0, invitationActions.clientWidth - softNo.offsetWidth)}px`;
+      softNo.style.top = `${minimumTop + Math.random() * Math.max(0, invitationActions.clientHeight - softNo.offsetHeight - minimumTop)}px`;
+    });
+
+    document.querySelector("#review").addEventListener("click", () => {
+      if (!validStep()) return;
+      const time = new Date(`2000-01-01T${form.time.value}`).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+      const details = extraDetails();
+      document.querySelector("#summary-date").textContent = form.date.value;
+      document.querySelector("#summary-time").textContent = time;
+      document.querySelector("#summary-plan").textContent = form.plan.value;
+      document.querySelector("#summary-specific").textContent = details.specific;
+      document.querySelector("#summary-common").textContent = details.common;
+      showStep(6);
+    });
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const subject = "约会说定啦";
+      const details = extraDetails();
+      const body = [
+        "我们的约会安排好啦！",
+        "",
+        `日期：${form.date.value}`,
+        `时间：${form.time.value}`,
+        `安排：${form.plan.value}`,
+        `专属安排：${details.specific}`,
+        `我们的小默契：${details.common}`,
+        "",
+        "开始期待啦"
+      ].join("\n");
+      window.location.href = `mailto:${HOST_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    });
+  </script>
+</body>
+</html>
