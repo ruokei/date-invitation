@@ -1,501 +1,260 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fff6f2">
-  <title>你愿意和我一起度过这个周末吗？</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
-
-    :root {
-      color-scheme: light;
-      --ink: #47253f;
-      --muted: #72576d;
-      --berry: #a43f72;
-      --berry-dark: #71234d;
-      --blush: #f5cedd;
-      --cream: #fff7fb;
-      --line: rgba(139, 77, 120, .24);
-      --shadow: 0 28px 80px rgba(70, 32, 83, .22);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      overflow-x: hidden;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 16% 12%, rgba(255, 204, 224, .92), transparent 25rem),
-        radial-gradient(circle at 84% 84%, rgba(204, 184, 244, .72), transparent 28rem),
-        linear-gradient(145deg, #fff7fb 0%, #f8efff 50%, #fff0f5 100%);
-      font-family: "DM Sans", system-ui, sans-serif;
-    }
-
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      z-index: -1;
-      width: clamp(13rem, 30vw, 28rem);
-      aspect-ratio: 1;
-      border: 2px solid rgba(153, 61, 112, .1);
-      border-radius: 50%;
-      transform: rotate(-14deg);
-    }
-
-    body::before { left: -4rem; bottom: -5rem; }
-    body::after { right: -4rem; top: -7rem; transform: rotate(15deg); }
-
-    .floating-icons { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-    .floating-icons svg { position: absolute; width: 2.4rem; height: 2.4rem; color: var(--berry); opacity: .2; animation: icon-drift 5s ease-in-out infinite alternate; }
-    .floating-icons svg:nth-child(1) { top: 8%; left: 8%; width: 2rem; }
-    .floating-icons svg:nth-child(2) { top: 16%; right: 10%; width: 2.7rem; animation-delay: -.8s; }
-    .floating-icons svg:nth-child(3) { top: 45%; left: 4%; width: 2.4rem; animation-delay: -1.7s; }
-    .floating-icons svg:nth-child(4) { top: 52%; right: 5%; width: 1.9rem; animation-delay: -2.4s; }
-    .floating-icons svg:nth-child(5) { bottom: 10%; left: 12%; width: 2.5rem; animation-delay: -3.1s; }
-    .floating-icons svg:nth-child(6) { bottom: 8%; right: 12%; width: 2.1rem; animation-delay: -1.2s; }
-    .floating-icons svg:nth-child(7) { top: 30%; left: 18%; width: 1.5rem; animation-delay: -3.8s; }
-    .floating-icons svg:nth-child(8) { top: 34%; right: 18%; width: 1.6rem; animation-delay: -2s; }
-    .icon { width: 1.05em; height: 1.05em; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.14em; }
-    button .icon { margin-left: .4em; }
-
-    main { width: min(100%, 760px); }
-
-    .card {
-      position: relative;
-      min-height: 590px;
-      padding: clamp(28px, 6vw, 60px);
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, .72);
-      border-radius: 32px;
-      background: rgba(255, 250, 254, .62);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-    }
-
-    .eyebrow {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 28px;
-      color: var(--berry);
-      font-size: .78rem;
-      font-weight: 700;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-    }
-
-    .eyebrow::before { content: ""; width: 28px; height: 1px; background: currentColor; }
-
-    h1, h2 {
-      max-width: 580px;
-      margin: 0;
-      font-family: "Fraunces", Georgia, serif;
-      font-weight: 700;
-      line-height: .99;
-      letter-spacing: -.045em;
-    }
-
-    h1 { font-size: clamp(3rem, 10vw, 6.5rem); }
-    h2 { font-size: clamp(2.4rem, 7vw, 4.8rem); }
-
-    .accent { color: var(--berry); font-style: italic; }
-
-    .lead {
-      max-width: 510px;
-      margin: 24px 0 34px;
-      color: var(--muted);
-      font-size: clamp(1rem, 2.4vw, 1.18rem);
-      line-height: 1.7;
-    }
-
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-
-    button {
-      min-height: 52px;
-      border: 0;
-      border-radius: 999px;
-      padding: 0 25px;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-    }
-
-    button:hover { transform: translateY(-2px); }
-    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #d36a83; outline-offset: 3px; }
-    .primary { color: white; background: rgba(151, 45, 101, .82); box-shadow: 0 12px 26px rgba(130, 42, 94, .24); backdrop-filter: blur(10px); }
-    .primary:hover { background: rgba(113, 35, 77, .92); }
-    .secondary { color: var(--berry-dark); border: 1px solid rgba(164, 63, 114, .24); background: rgba(255, 255, 255, .48); backdrop-filter: blur(10px); }
-    .invitation-actions { position: relative; width: min(100%, 440px); min-height: 170px; margin-inline: auto; }
-    .invitation-actions .primary { position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
-    .invitation-actions .primary:hover { transform: translateX(-50%) translateY(-2px); }
-    #soft-no { position: absolute; top: 68px; left: 50%; animation: float-centered 1.5s ease-in-out infinite; transition: top .18s ease, left .18s ease, background .18s ease; }
-    #soft-no.is-moving { animation-name: float-button; }
-    .text-button { color: var(--muted); background: transparent; padding-inline: 8px; }
-
-    .progress { display: flex; gap: 7px; margin: 0 0 38px; }
-    .progress span { width: 28px; height: 5px; border-radius: 9px; background: var(--line); }
-    .progress span.done { background: var(--berry); }
-
-    .step { display: none; animation: rise .35s ease both; }
-    .step.active { display: block; }
-
-    .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 30px; }
-    .choice { position: relative; }
-    .choice input { position: absolute; opacity: 0; pointer-events: none; }
-    .choice label {
-      display: grid;
-      min-height: 128px;
-      align-content: center;
-      gap: 7px;
-      padding: 22px;
-      border: 1.5px solid var(--line);
-      border-radius: 20px;
-      background: rgba(255,255,255,.46);
-      backdrop-filter: blur(10px);
-      cursor: pointer;
-      transition: border .18s, background .18s, transform .18s;
-    }
-    .choice label:hover { transform: translateY(-2px); border-color: #c77b8d; }
-    .choice input:checked + label { border-color: var(--berry); background: rgba(245, 206, 221, .68); box-shadow: inset 0 0 0 1px var(--berry); }
-    .choice input:focus-visible + label { outline: 3px solid #d36a83; outline-offset: 3px; }
-    .choice strong { font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; }
-    .choice small { color: var(--muted); font-size: .9rem; }
-
-    .field { display: grid; gap: 9px; margin-top: 22px; }
-    label { font-weight: 700; }
-    select {
-      appearance: none;
-      width: 100%;
-      min-height: 52px;
-      border: 1.5px solid rgba(164, 63, 114, .2);
-      border-radius: 13px;
-      padding: 13px 46px 13px 15px;
-      color: var(--ink);
-      background:
-        linear-gradient(45deg, transparent 50%, var(--berry) 50%) calc(100% - 20px) 50% / 6px 6px no-repeat,
-        linear-gradient(135deg, var(--berry) 50%, transparent 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
-        linear-gradient(135deg, rgba(255,255,255,.82), rgba(250,231,242,.68));
-      backdrop-filter: blur(10px);
-      font: inherit;
-      font-weight: 650;
-      cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 5px 14px rgba(130,42,94,.06);
-      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
-    }
-    select:hover { border-color: rgba(151, 45, 101, .5); transform: translateY(-1px); }
-    select:focus-visible { box-shadow: 0 0 0 4px rgba(211,106,131,.16), 0 8px 20px rgba(130,42,94,.1); }
-    select option { color: var(--ink); background: #fff8fc; }
-    .hint { margin: 0; color: var(--muted); font-size: .86rem; }
-
-    .extras { display: grid; gap: 28px; margin-top: 28px; }
-    .option-section { display: grid; gap: 16px; }
-    .option-section h3 { margin: 0; color: var(--berry-dark); font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; }
-    .option-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .option-grid .field { margin: 0; padding: 13px; border: 1px solid rgba(255,255,255,.74); border-radius: 18px; background: rgba(255,255,255,.28); box-shadow: 0 8px 20px rgba(130,42,94,.05); transition: border-color .18s ease, background .18s ease, transform .18s ease; }
-    .option-grid .field:focus-within { border-color: rgba(151,45,101,.35); background: rgba(255,255,255,.5); transform: translateY(-2px); }
-    .option-grid .field label { color: var(--berry-dark); font-size: .86rem; letter-spacing: .02em; }
-    .extras-panel[hidden] { display: none; }
-
-    .time-fieldset { margin: 26px 0 0; padding: 0; border: 0; }
-    .time-fieldset legend { margin-bottom: 12px; font-weight: 700; }
-    .time-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 9px; max-height: 235px; padding: 4px; overflow-y: auto; }
-    .time-choice { position: relative; }
-    .time-choice input { position: absolute; opacity: 0; pointer-events: none; }
-    .time-choice label {
-      display: grid;
-      min-height: 46px;
-      place-items: center;
-      border: 1.5px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, .48);
-      backdrop-filter: blur(10px);
-      cursor: pointer;
-      transition: border .18s, background .18s, transform .18s;
-    }
-    .time-choice label:hover { transform: translateY(-2px); border-color: #c77b8d; }
-    .time-choice input:checked + label { color: white; border-color: var(--berry); background: rgba(151, 45, 101, .84); }
-    .time-choice input:focus-visible + label { outline: 3px solid #d36a83; outline-offset: 2px; }
-
-    .summary { display: grid; gap: 12px; margin: 28px 0; }
-    .summary div { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-    .summary dt { color: var(--muted); }
-    .summary dd { margin: 0; text-align: right; font-weight: 700; }
-
-    .tiny-note { margin-top: 20px; color: var(--muted); font-size: .78rem; line-height: 1.5; }
-    .success-mark { width: 4rem; height: 4rem; margin: 0 0 20px; color: var(--berry); }
-    .error { min-height: 1.2em; margin: 12px 0 0; color: var(--berry-dark); font-size: .9rem; font-weight: 700; }
-
-    @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
-    @keyframes float-button { 0%, 100% { transform: translateY(-5px); } 50% { transform: translateY(7px); } }
-    @keyframes float-centered { 0%, 100% { transform: translate(-50%, -5px); } 50% { transform: translate(-50%, 7px); } }
-    @keyframes icon-drift { from { transform: translateY(-8px) rotate(-5deg); } to { transform: translateY(10px) rotate(7deg); } }
-
-    @media (max-width: 560px) {
-      body { padding: 12px; }
-      .card { min-height: 620px; padding: 28px 22px; border-radius: 24px; }
-      .choices { grid-template-columns: 1fr; }
-      .option-grid { grid-template-columns: 1fr; }
-      .choice label { min-height: 102px; }
-      .actions button { flex: 1 1 auto; }
-      .summary div { display: grid; gap: 3px; }
-      .summary dd { text-align: left; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
-      #soft-no { animation: none !important; }
-      .floating-icons svg { animation: none !important; }
-    }
-  </style>
-</head>
-<body>
-  <div class="floating-icons" aria-hidden="true">
-    <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="6.2" r="3"/><circle cx="17.5" cy="10.2" r="3"/><circle cx="15.4" cy="16.6" r="3"/><circle cx="8.6" cy="16.6" r="3"/><circle cx="6.5" cy="10.2" r="3"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><path d="m12 4 .9 3.1L16 8l-3.1.9L12 12l-.9-3.1L8 8l3.1-.9L12 4ZM18 14l.6 2.4L21 17l-2.4.6L18 20l-.6-2.4L15 17l2.4-.6L18 14Z"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
-    <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h18M12 3v18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>
-  </div>
-  <main>
-    <form class="card" id="date-form" novalidate>
-      <p class="eyebrow"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>一个藏在心里的小问题</p>
-
-      <section class="step active" data-step="0">
-        <h1>你愿意和我一起度过<span class="accent">这个周末</span>吗？</h1>
-        <p class="lead">想把 9 月 26 日或 27 日留给我们——选一个你喜欢的安排，一起让这个周末变得更甜一点。</p>
-        <div class="actions invitation-actions" id="invitation-actions">
-          <button class="primary" type="button" data-next>好呀，一起来计划<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></button>
-          <button class="secondary" type="button" id="soft-no">让我想一想</button>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#103f32" />
+    <title>The Date Railway · Our next little adventure</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap");
+      :root { --ink:#263c2f; --paper:#fbf2d9; --mist:#f4e7c9; --leaf:#103f32; --rose:#a44937; --gold:#b7783a; --line:#c9b698; }
+      * { box-sizing:border-box; }
+      body { min-height:100vh; margin:0; color:var(--ink); background:#efe0a9; background-image:radial-gradient(#b3874c33 .7px,transparent .8px); background-size:8px 8px; font:16px/1.5 "DM Mono",monospace; }
+      button { font:inherit; cursor:pointer; }
+      button:focus-visible { outline:3px solid var(--gold); outline-offset:4px; }
+      .shell { width:min(100% - 32px,840px); margin:auto; padding:42px 0 64px; }
+      .rail { display:flex; justify-content:center; gap:7px; margin-bottom:34px; }
+      .rail span { width:46px; height:4px; border-radius:4px; background:#c9b698; }
+      .rail span.active { background:var(--rose); }
+      .masthead { position:relative; margin:0; padding:42px 30px 38px; overflow:hidden; border:12px solid #07462f; border-bottom:0; border-radius:7px 7px 0 0; background:#0b6240; color:#fff6dd; text-align:center; box-shadow:0 20px 38px #5d3d202b; }
+      .masthead::before { content:""; position:absolute; inset:15px; border:1px solid #f5c46f99; pointer-events:none; }
+      .eyebrow { margin:0 0 8px; color:var(--leaf); letter-spacing:.13em; font-size:.73rem; font-weight:500; text-transform:uppercase; }
+      h1,h2 { font-family:"Playfair Display",serif; letter-spacing:-.045em; line-height:1.02; }
+      h1 { max-width:590px; margin:0 auto 13px; color:#fff4d6; font-size:clamp(2.6rem,8vw,5rem); }
+      .masthead .eyebrow { position:relative; color:#f3c46f; }
+      .intro { position:relative; max-width:500px; margin:auto; color:#f6e7c6; }
+      .stage { position:relative; min-height:480px; padding:clamp(28px,5vw,48px); overflow:hidden; border:12px solid #07462f; border-top:0; border-radius:0 0 7px 7px; background:#fff7dc; background-image:linear-gradient(90deg,transparent 49.6%,#b38b6255 50%,transparent 50.4%),radial-gradient(#a7794b3d .65px,transparent .8px); background-size:100% 100%,8px 8px; box-shadow:0 22px 42px #5d3d202d; }
+      .stage::before { content:""; position:absolute; top:0; bottom:0; left:50%; width:13px; background:linear-gradient(90deg,#724a2b55,transparent 45%,#fff9e8aa 50%,transparent 55%,#724a2b44); transform:translateX(-50%); pointer-events:none; }
+      .step { position:relative; display:none; transform-origin:left center; }
+      .step.current { display:block; animation:page-turn .55s cubic-bezier(.22,.75,.2,1) both; }
+      h2 { margin:0 0 10px; font-size:clamp(2rem,5vw,3.25rem); }
+      .lead { max-width:490px; margin:0 0 28px; color:#536158; }
+      .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+      .choice { min-height:155px; padding:19px; border:1px solid var(--line); border-radius:14px; color:var(--ink); background:#fffdf8; text-align:left; transition:transform .18s, border-color .18s, box-shadow .18s; }
+      .choice:hover { border-color:var(--leaf); transform:translateY(-3px); box-shadow:0 10px 18px #38614d16; }
+      .choice strong,.choice small { display:block; }
+      .choice strong { margin:8px 0 5px; font:600 1.28rem "Playfair Display",serif; }
+      .choice small { color:#5b6a60; font-size:.76rem; }
+      .badge { display:inline-block; padding:4px 7px; color:#fff; background:var(--rose); font-size:.68rem; letter-spacing:.08em; }
+      .suggestion { grid-column:1 / -1; display:grid; grid-template-columns:1fr auto; gap:10px; padding:12px; border:1px solid var(--line); border-radius:12px; background:#fffdf8; }
+      .suggestion label { grid-column:1 / -1; color:#594d3c; font-size:.78rem; }
+      .suggestion input { min-width:0; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:7px; color:var(--ink); background:#fffaf0; font:inherit; }
+      .center { text-align:center; }
+      .route { display:grid; grid-template-columns:minmax(0,1fr) 20px minmax(0,1.8fr) 20px minmax(0,1fr); align-items:center; gap:8px; max-width:660px; margin:22px auto 30px; font-size:.79rem; }
+      .route span { position:relative; display:grid; place-items:center; min-height:68px; padding:20px 10px 8px; border:3px double #d5b780; color:#fff3d5; background:#103f32; box-shadow:0 5px 12px #4e39252e,inset 0 0 0 3px #103f32; text-align:center; line-height:1.25; }
+      .route span::before { content:attr(data-label); position:absolute; top:5px; left:0; right:0; color:#e3c48e; font-size:.54rem; letter-spacing:.18em; text-transform:uppercase; }
+      .route i { width:100%; height:8px; border-top:2px solid #a47c52; border-bottom:2px solid #a47c52; }
+      .step[data-step="6"] { position:relative; overflow:hidden; }
+      .reveal-scene { position:absolute; inset:8% -5% auto; height:190px; pointer-events:none; overflow:hidden; }
+      .rail-line { position:absolute; top:132px; left:0; width:100%; border-top:2px solid #a55d3f; opacity:.45; }
+      .passing-train { position:absolute; top:52px; left:-45%; width:min(480px,80vw); color:#34190f; opacity:0; filter:drop-shadow(0 9px 8px #6b2e1f44); }
+      .passing-train svg { display:block; width:100%; height:auto; }
+      .passing-train.run { animation:train-pass 1.4s cubic-bezier(.22,.7,.25,1) forwards; }
+      .ticket { position:relative; overflow:hidden; max-width:690px; margin:48px auto 28px; color:#351a0f; background:#f7bd87; border:1px solid #d68b5a; border-radius:3px; box-shadow:0 21px 40px #6b2e1f2b; text-align:left; }
+      .ticket::before { content:""; position:absolute; inset:0; opacity:.28; background-image:radial-gradient(#8a421f 0.55px,transparent .7px),linear-gradient(120deg,#fff4d6aa,transparent 40%); background-size:7px 7px,100% 100%; pointer-events:none; }
+      .ticket-main { position:relative; display:grid; grid-template-columns:1.05fr 1.18fr .43fr; min-height:305px; }
+      .ticket-illustration { display:flex; flex-direction:column; justify-content:space-between; padding:28px 22px 23px; border-right:2px dashed #a9613e; }
+      .ticket-brand { margin:0; font-size:.64rem; letter-spacing:.19em; text-transform:uppercase; }
+      .ticket-illustration h3 { margin:7px 0 0; font:600 clamp(1.55rem,4vw,2.35rem)/.9 "Playfair Display",serif; letter-spacing:.08em; }
+      .ticket-locomotive { width:100%; max-width:195px; margin-top:14px; }
+      .ticket-body { padding:29px 22px 18px; }
+      .ticket p { margin:0; }
+      .ticket-title { margin:4px 0 20px!important; font:600 clamp(1.6rem,4.2vw,2.45rem) "Playfair Display",serif; line-height:.98; }
+      .ticket-label { color:#6e351f; font-size:.61rem; letter-spacing:.12em; text-transform:uppercase; }
+      .ticket-value { margin:3px 0 13px!important; font-size:.78rem; }
+      .ticket-side { display:flex; align-items:center; justify-content:center; padding:18px 8px; color:#fff5e5; background:#c85343; }
+      .ticket-side-inner { display:grid; gap:20px; justify-items:center; writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; }
+      .ticket-side strong { font:600 1rem "Playfair Display",serif; letter-spacing:.12em; }
+      .ticket-side small { font-size:.58rem; letter-spacing:.13em; }
+      .ticket.arriving { animation:ticket-arrive .9s cubic-bezier(.18,.8,.2,1) .7s both; }
+      .button { min-height:48px; padding:0 20px; border:0; border-radius:8px; color:#fff; background:var(--rose); box-shadow:inset 0 -2px #883537; font-weight:500; }
+      .button:hover { background:#9e4042; }
+      .button.secondary,.button.secondary:hover,.button.secondary:active { margin-top:12px; color:var(--leaf); background:transparent; box-shadow:none; text-decoration:underline; text-underline-offset:4px; }
+      .note { max-width:470px; margin:0 auto 23px; color:#594d3c; }
+      .hidden { display:none; }
+      @keyframes page-turn { from { opacity:.2; transform:perspective(1500px) rotateY(-18deg) translateX(-24px); filter:brightness(.92); } to { opacity:1; transform:none; filter:none; } }
+      @keyframes train-pass { 0% { transform:translateX(0); opacity:0; } 10% { opacity:1; } 78% { opacity:1; } 100% { transform:translateX(160vw); opacity:0; } }
+      @keyframes ticket-arrive { 0% { opacity:0; transform:perspective(1000px) translateY(100px) scale(.4) rotateX(28deg); filter:blur(9px); } 100% { opacity:1; transform:none; filter:none; } }
+      @media (max-width:520px) { .shell { width:min(100% - 22px,760px); padding-top:25px; } .masthead { padding:34px 18px 29px; border-width:9px; } .stage { padding:25px 19px; border-width:9px; border-top:0; } .choices { grid-template-columns:1fr; } .ticket { margin-top:28px; } .ticket-main { grid-template-columns:1fr .98fr .38fr; min-height:280px; } .ticket-illustration { padding:21px 13px; } .ticket-body { padding:22px 13px 14px; } .ticket-side { padding:12px 5px; } .ticket-value { font-size:.7rem; } }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } .passing-train,.ticket.arriving { animation:none!important; opacity:1; transform:none; filter:none; } }
+      /* The physical book is the interface: cover, leaves, and a last-page reveal. */
+      body { background:#efe1be; background-image:radial-gradient(#98775d24 .6px,transparent .7px); background-size:6px 6px; }
+      ::selection { color:#fffaf0; background:#103f32; }
+      .shell { width:min(100% - 28px,980px); padding:28px 0 70px; perspective:1800px; }
+      .rail { margin:0 auto 20px; opacity:0; transition:opacity .4s; }
+      .book-open .rail { opacity:1; }
+      .short-route .rail span:last-child { display:none; }
+      .masthead { width:min(100%,560px); min-height:720px; margin:14px auto 0; padding:14px; border:0; border-left:16px solid #092b26; border-radius:5px 13px 13px 5px; background:#103f32; box-shadow:3px 9px 0 #d9c6a2,14px 27px 55px #46311d55,inset -9px 0 10px #041e1b55; transform-origin:left center; z-index:2; }
+      .masthead::before { display:none; }
+      .cover-frame { display:flex; flex-direction:column; align-items:center; min-height:690px; padding:31px 30px 23px; border:1px solid #c9ac75; outline:1px solid #c9ac75; outline-offset:-9px; background:radial-gradient(circle at 50% 58%,#1b6049 0,#103f32 67%); }
+      .cover-edition,.cover-kicker,.cover-foot { margin:0; color:#dbc393; text-transform:uppercase; letter-spacing:.2em; font-size:.67rem; }
+      .cover-kicker { margin-top:55px; }
+      .masthead h1 { position:relative; margin:8px 0 0; max-width:none; color:#fff2cf; font-size:clamp(3.8rem,9vw,6rem); line-height:.9; letter-spacing:-.035em; text-shadow:0 3px 0 #061d19; }
+      .cover-art { position:relative; width:min(100%,420px); height:220px; margin:9px auto 0; overflow:hidden; color:#111e19; }
+      .cover-art svg { position:relative; z-index:1; width:100%; height:100%; color:#0b281f; filter:drop-shadow(0 2px 0 #e9bd74); }
+      .cover-sun { position:absolute; width:170px; height:170px; left:50%; top:18px; transform:translateX(-50%); border-radius:50%; background:#d39a64; box-shadow:0 0 0 11px #e7bc7a18; }
+      .cover-copy { max-width:310px; margin:2px auto 18px; color:#f3e0b8; font:italic 1.06rem/1.45 "Playfair Display",serif; }
+      .cover-open { min-height:53px; padding:0 23px; border:1px solid #f2dbad; border-radius:2px; color:#103f32; background:#f4d7a1; font-size:.84rem; font-weight:500; box-shadow:0 4px 0 #082b24; }
+      .cover-open:hover { background:#ffe7b8; }
+      .cover-open span { margin-left:13px; font-size:1.3em; }
+      .cover-foot { margin-top:auto; }
+      .stage { display:none; width:min(100%,880px); min-height:620px; margin:0 auto; padding:clamp(30px,6vw,60px); border:11px solid #103f32; border-left-width:18px; border-radius:3px 11px 11px 3px; background:#fbf2d9; background-image:linear-gradient(90deg,#b49b7660,transparent 17px,transparent 49.5%,#b49b7647 50%,transparent 50.5%),radial-gradient(#9c775023 .65px,transparent .7px); background-size:100% 100%,7px 7px; box-shadow:3px 7px 0 #dfd0ae,11px 24px 45px #543b2052; }
+      .stage::before { left:50%; opacity:.33; }
+      .stage::after { content:attr(data-page); position:absolute; right:35px; bottom:20px; color:#85694c; font-size:.7rem; letter-spacing:.15em; }
+      .book-open .masthead { display:none; }
+      .book-open .stage { display:block; animation:open-leaf .75s cubic-bezier(.16,.85,.3,1) both; }
+      .step.current { animation:page-turn .6s cubic-bezier(.16,.8,.2,1) both; }
+      .step:not(.current) { display:none; }
+      .step > .eyebrow { color:#9c5342; }
+      .step h2 { max-width:640px; margin-bottom:14px; color:#263c2f; }
+      .lead { max-width:550px; color:#594d3c; }
+      .choice { min-height:164px; border-radius:2px; border-color:#c9b698; background:#fffaf0; box-shadow:2px 4px 0 #d7c9ae; }
+      .choice:hover { border-color:#9b503e; box-shadow:3px 8px 14px #67482d20; }
+      .choice small { color:#5e5546; }
+      .badge { background:#a44937; }
+      .suggestion { border-radius:2px; background:#fffaf0; }
+      .button { border-radius:2px; background:#a44937; box-shadow:inset 0 -2px #713224; }
+      .button:hover { background:#893b2d; }
+      .step[data-step="6"] { min-height:710px; }
+      .step[data-step="6"] h2,.step[data-step="6"] > .eyebrow,.step[data-step="6"] .route { position:relative; z-index:2; }
+      .reveal-scene { z-index:1; top:91px; left:-60px; right:-60px; height:200px; }
+      .rail-line { top:152px; border-color:#8a6546; }
+      .reveal-scene { height:230px; background:linear-gradient(180deg,transparent 61%,#d9b99a22 85%,transparent); }
+      .rail-line { top:169px; height:15px; border-top:3px solid #76523c; border-bottom:2px solid #76523c; background:repeating-linear-gradient(90deg,transparent 0 28px,#815e45 28px 35px,transparent 35px 48px); opacity:.65; }
+      .reveal-scene:before,.reveal-scene:after { content:""; position:absolute; left:-30%; right:-30%; height:2px; background:repeating-linear-gradient(90deg,transparent 0 65px,#9f694558 65px 145px,transparent 145px 220px); opacity:0; }
+      .reveal-scene:before { top:60px; } .reveal-scene:after { top:110px; }
+      .reveal-scene:has(.run):before { animation:speed-line 1.9s .2s linear both; }
+      .reveal-scene:has(.run):after { animation:speed-line 2.1s .35s linear both; }
+      .passing-train { top:19px; left:-740px; width:720px; color:#39241c; filter:drop-shadow(0 14px 8px #5b392c55); }
+      .passing-train.run { animation:train-pass-book 2.3s cubic-bezier(.35,.04,.58,.98) forwards; }
+      .passing-train .wheel { transform-box:fill-box; transform-origin:center; stroke-dasharray:7 5; stroke-width:3; }
+      .passing-train.run .wheel { animation:wheel-turn .38s linear infinite; }
+      .passing-train.run .drive-rod { animation:rod-pulse .38s ease-in-out infinite alternate; }
+      .passing-train .steam { opacity:0; }
+      .passing-train.run .steam { animation:steam-rise 1.05s ease-out infinite; }
+      .passing-train.run .steam:nth-child(2) { animation-delay:.34s; }
+      .passing-train.run .steam:nth-child(3) { animation-delay:.68s; }
+      .passing-train.run .lamp-glow { animation:lamp-flicker .45s ease-in-out infinite alternate; }
+      .passing-train.run .window-light { animation:window-flicker 1.3s ease-in-out infinite alternate; }
+      .ticket { z-index:2; margin-top:150px; box-shadow:0 24px 46px #623e2d46; }
+      .ticket.arriving { animation:ticket-fly-book 1.15s cubic-bezier(.14,.83,.16,1) 2.12s both; }
+      .step[data-step="6"] .note,.step[data-step="6"] .button,.step[data-step="6"] #status { position:relative; z-index:2; }
+      @keyframes open-leaf { from { opacity:.25; transform:perspective(1500px) rotateY(-34deg) translateX(60px); } to { opacity:1; transform:none; } }
+      @keyframes train-pass-book { 0% { opacity:0; transform:translateX(0) scale(.82); } 7% { opacity:1; } 45% { transform:translateX(calc(50vw + 330px)) scale(.98); } 78% { opacity:1; } 100% { opacity:0; transform:translateX(calc(100vw + 850px)) scale(1.16); } }
+      @keyframes wheel-turn { to { transform:rotate(360deg); } }
+      @keyframes rod-pulse { to { transform:translateX(5px) translateY(-2px); } }
+      @keyframes steam-rise { 0% { opacity:0; transform:translate(0,10px) scale(.65); } 22% { opacity:.8; } 100% { opacity:0; transform:translate(-25px,-48px) scale(1.75); } }
+      @keyframes speed-line { 0%,100% { opacity:0; transform:translateX(0); } 20%,75% { opacity:.9; } 100% { transform:translateX(-25%); } }
+      @keyframes lamp-flicker { to { opacity:.45; transform:scale(1.28); transform-origin:682px 96px; } }
+      @keyframes window-flicker { to { opacity:.65; } }
+      @keyframes ticket-fly-book { 0% { opacity:0; transform:perspective(1100px) translate(0,135px) rotateX(38deg) scale(.18); filter:blur(14px); } 72% { opacity:1; transform:perspective(1100px) translateY(-9px) rotateX(-3deg) scale(1.04); filter:blur(0); } 100% { opacity:1; transform:none; filter:none; } }
+      @media (max-width:600px) { .shell { width:min(100% - 20px,980px); padding-top:12px; } .masthead { min-height:650px; border-left-width:11px; } .cover-frame { min-height:622px; padding:28px 18px 21px; } .cover-kicker { margin-top:57px; } .cover-art { height:198px; } .stage { min-height:650px; padding:30px 19px 49px; border-width:8px; border-left-width:13px; } .stage::after { right:18px; } .stage::before { opacity:.17; } .choices { grid-template-columns:1fr; } .choice { min-height:112px; } .step[data-step="6"] { min-height:760px; } .step[data-step="6"] .route { grid-template-columns:1fr; max-width:310px; gap:7px; margin-bottom:8px; font-size:.72rem; } .route span { min-height:52px; padding-top:17px; } .route span::before { top:3px; font-size:.48rem; } .route i { width:2px; height:10px; margin:auto; border:0; background:#a47c52; } .reveal-scene { top:116px; } .ticket { margin-top:75px; } .ticket-main { display:block; } .ticket-illustration { flex-direction:row; align-items:end; min-height:120px; padding:17px 16px; border-right:0; border-bottom:2px dashed #a9613e; } .ticket-illustration h3 { font-size:1.45rem; } .ticket-locomotive { width:105px; margin:0; } .ticket-body { padding:20px 18px 13px; } .ticket-title { font-size:1.8rem; } .ticket-value { font-size:.82rem; } .ticket-side { min-height:53px; padding:9px 14px; } .ticket-side-inner { display:flex; flex-wrap:wrap; gap:9px; writing-mode:horizontal-tb; transform:none; font-size:.65rem; } .ticket-side strong { font-size:.82rem; } .ticket-side small { font-size:.5rem; } }
+      @media (prefers-reduced-motion:reduce) { .book-open .stage,.step.current,.passing-train.run,.ticket.arriving,.reveal-scene:before,.reveal-scene:after,.passing-train .wheel,.passing-train .drive-rod,.passing-train .steam,.passing-train .lamp-glow,.passing-train .window-light { animation:none!important; transform:none!important; opacity:1!important; filter:none!important; } .passing-train.run { display:none; } }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="rail" aria-hidden="true"><span class="active"></span><span></span><span></span><span></span><span></span><span></span></div>
+      <header class="masthead" id="book-cover">
+        <div class="cover-frame">
+          <p class="cover-edition">A little story for two · Passenger's edition</p>
+          <p class="cover-kicker">The beginning of</p>
+          <h1>The Date<br>Railway</h1>
+          <div class="cover-art" aria-hidden="true">
+            <div class="cover-sun"></div>
+            <svg viewBox="0 0 560 290" role="presentation"><path d="M10 238h540M40 251h480" fill="none" stroke="currentColor" stroke-width="4"/><path d="M89 189h261v50H89zM122 141h91v48h-91zM131 105h20v36h-20zM228 172h69v17h-69zM352 204h112v35H352zM359 169h91v35h-91zM466 216h31v23h-31z" fill="currentColor"/><path d="M141 154h51v26h-51zM372 179h26v18h-26zM410 179h26v18h-26z" fill="#d9ad77"/><path d="M102 211h237M369 220h78" stroke="#d9ad77" stroke-width="3"/><circle cx="140" cy="246" r="19" fill="currentColor"/><circle cx="210" cy="246" r="19" fill="currentColor"/><circle cx="307" cy="246" r="19" fill="currentColor"/><circle cx="388" cy="246" r="15" fill="currentColor"/><circle cx="443" cy="246" r="15" fill="currentColor"/><path d="M141 86c-16-15 17-26 3-43M165 81c-12-16 13-21 4-39M187 77c-12-12 9-19 3-33" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity=".45"/></svg>
+          </div>
+          <p class="cover-copy">A day to choose. A journey to make. A ticket just for us.</p>
+          <button class="cover-open" id="open-book">Open our story <span aria-hidden="true">→</span></button>
+          <p class="cover-foot">Volume 01 · The weekend edition</p>
         </div>
+      </header>
+      <section class="stage" aria-live="polite">
+        <section class="step current" data-step="1">
+          <p class="eyebrow">first stop · pick a day</p><h2>Which day feels right?</h2><p class="lead">Choose the departure that works best for you. We’ll plan the rest together.</p>
+          <div class="choices">
+            <button class="choice" data-date="Saturday" data-ics="20260926"><span class="badge">TICKET A</span><strong>The Saturday Express</strong><small>Saturday</small><small>Choose a day, then choose our adventure</small></button>
+            <button class="choice" data-date="Sunday" data-ics="20260927"><span class="badge">TICKET B</span><strong>The Sunday Line</strong><small>Sunday</small><small>Choose a day, then choose our adventure</small></button>
+          </div>
+        </section>
+        <section class="step" data-step="2">
+          <p class="eyebrow">second stop · choose the setting</p><h2>Should we go out or stay home?</h2><p class="lead">Choose the kind of day you’re feeling, then we’ll show the matching routes.</p>
+          <div class="choices">
+            <button class="choice" data-setting="out"><span class="badge">OUT</span><strong>Go out</strong><small>Make an adventure of the day</small></button>
+            <button class="choice" data-setting="home"><span class="badge">HOME</span><strong>Stay home</strong><small>Keep it slow and cozy together</small></button>
+          </div>
+        </section>
+        <section class="step" data-step="3">
+          <p class="eyebrow">third stop · choose a route</p><h2>Where should our day take us?</h2><p class="lead">Pick one complete adventure. We’ll make a ticket from there.</p>
+          <div class="choices">
+            <button class="choice" data-route-setting="out" data-route="Finish our tufting" data-itinerary="Café lunch → tufting at 2 → a stroll through a nicer mall → simple dinner"><span class="badge">MAKE</span><strong>Finish our tufting</strong><small>Lunch, tufting at 2, mall stroll, and a simple dinner</small></button>
+            <button class="choice" data-route-setting="out" data-route="Explore something new" data-itinerary="Café lunch → Activity choice → mall stroll → simple dinner" data-pick-activity="true"><span class="badge">PLAY</span><strong>Explore something new</strong><small>Try a new activity, stroll the mall, then have a simple dinner</small></button>
+            <button class="choice" data-route-setting="home" data-route="A slow day in" data-itinerary="Lunch choice → keep watching shows → rest together → family dinner → go home"><span class="badge">HOME</span><strong>A slow day in</strong><small>Shows, rest, family dinner, and nowhere else to be</small></button>
+            <button class="choice" data-route-setting="home" data-route="A creative home day" data-itinerary="Lunch choice → make something together → rest together → family dinner → go home"><span class="badge">COZY</span><strong>A creative home day</strong><small>Make, rest, family dinner, and a cozy night in</small></button>
+          </div>
+        </section>
+        <section class="step" data-step="4">
+          <p class="eyebrow">fourth stop · pick an activity</p><h2>What should we try?</h2><p class="lead">Choose our new little challenge before the mall stroll.</p>
+          <div class="choices">
+            <button class="choice" data-activity="拼豆"><span class="badge">MAKE</span><strong>拼豆</strong><small>Make something small and colourful together</small></button>
+            <button class="choice" data-activity="Rock climbing"><span class="badge">CLIMB</span><strong>Rock climbing</strong><small>Try a playful challenge side by side</small></button>
+            <button class="choice" data-activity="Pottery"><span class="badge">SHAPE</span><strong>Pottery</strong><small>Get messy and make something together</small></button>
+            <button class="choice" id="suggest-activity"><span class="badge">YOURS</span><strong>Suggest an activity</strong><small>Got another idea? Add it to our route.</small></button>
+            <form class="suggestion hidden" id="activity-form"><label for="activity-input">What should we try?</label><input id="activity-input" maxlength="60" required placeholder="e.g. an escape room" /><button class="button" type="submit">Use this idea</button></form>
+          </div>
+        </section>
+        <section class="step" data-step="5">
+          <p class="eyebrow" id="picker-eyebrow">third stop · pick the café</p><h2 id="picker-title">Which café should we go to?</h2><p class="lead" id="picker-lead">You get to choose our first delicious stop.</p>
+          <div class="choices">
+            <button class="choice" data-picker-choice><span class="badge">FAMILIAR</span><strong>Your favourite café</strong><small>A comfortable classic with your usual order</small></button>
+            <button class="choice" data-picker-choice><span class="badge">NEW</span><strong>A new café to try</strong><small>Find a fresh little place together</small></button>
+          </div>
+        </section>
+        <section class="step center" data-step="6">
+          <p class="eyebrow">your ticket is ready</p><h2>Destination selected.</h2><div class="route" aria-label="Selected route"><span id="route-date" data-label="Departure"></span><i aria-hidden="true"></i><span id="route-idea" data-label="Destination"></span><i aria-hidden="true"></i><span data-label="Status">All aboard</span></div>
+          <div class="reveal-scene" aria-hidden="true"><div class="rail-line"></div><div class="passing-train" id="passing-train">
+            <svg viewBox="0 0 720 190" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="boiler" x2="0" y2="1"><stop stop-color="#72513a"/><stop offset=".46" stop-color="#36251f"/><stop offset="1" stop-color="#211b18"/></linearGradient><linearGradient id="carriage" x2="0" y2="1"><stop stop-color="#9b6345"/><stop offset=".58" stop-color="#58392d"/><stop offset="1" stop-color="#342822"/></linearGradient><radialGradient id="lamp"><stop stop-color="#fff2b1" stop-opacity=".9"/><stop offset="1" stop-color="#f4c064" stop-opacity="0"/></radialGradient></defs>
+              <g fill="#b2a292" class="steam"><circle cx="517" cy="24" r="12"/><circle cx="504" cy="17" r="9"/></g><g fill="#b2a292" class="steam"><circle cx="536" cy="22" r="10"/><circle cx="546" cy="16" r="7"/></g><g fill="#b2a292" class="steam"><circle cx="521" cy="13" r="8"/><circle cx="530" cy="8" r="6"/></g>
+              <ellipse cx="370" cy="168" rx="333" ry="9" fill="#3f3026" opacity=".28"/>
+              <g stroke="#281e1a" stroke-width="2" stroke-linejoin="round">
+                <path d="M18 128V64h170v64z" fill="url(#carriage)"/><path d="M13 60h180l-9-12H23z" fill="#35251f"/><path d="M26 70h156v46H26z" fill="#6a4230"/><path d="M24 117h162v11H24z" fill="#251f1b"/><path d="M40 76h32v31H40zm45 0h32v31H85zm45 0h32v31h-32z" class="window-light" fill="#edc58d"/><path d="M78 76v31m45-31v31M16 57h174M24 133h169" fill="none" stroke="#c99662" stroke-width="3"/><path d="M36 68h143M34 113h146" fill="none" stroke="#cc9b68" stroke-width="1.5"/>
+                <path d="M194 128V76h111v52z" fill="#412d25"/><path d="M201 75h103l-12-17h-81z" fill="#6d4731"/><path d="M211 83h73v31h-73z" fill="#8f5a38"/><path d="M198 119h107v10H198z" fill="#241e1a"/><path d="M216 87h62m-62 7h62m-62 7h62m-62 7h62" stroke="#b37b4b" stroke-width="1.4"/>
+                <path d="M309 123V72h44l19 16v35z" fill="#372923"/><path d="M315 70h39l17 16h-56z" fill="#754830"/><path d="M321 79h28v23h-28z" class="window-light" fill="#eac182"/><path d="M356 87h11v24h-11z" fill="#2a201c"/>
+                <path d="M367 103h30V72h200v54H367z" fill="url(#boiler)"/><path d="M394 73c43-8 139-8 198 0" fill="none" stroke="#bb8a57" stroke-width="5"/><path d="M400 121h192" fill="none" stroke="#a26943" stroke-width="5"/><path d="M415 77v39m31-43v45m33-47v49m34-49v49m33-48v47m31-43v41" fill="none" stroke="#7c5c44" stroke-width="2"/><path d="M395 69h190v-9H395z" fill="#231d1a"/><path d="M497 61V38h27v23zM491 38h39l-7-10h-25z" fill="#32231e"/><path d="M420 62V49h22v13zM412 48h38v-6h-38z" fill="#5d3c2b"/><path d="M581 70h31l23 32v24h-54z" fill="#352720"/><path d="M612 80l27 20h25v26h-31z" fill="#211d1a"/><path d="M635 102h46v25h-46z" fill="#643f2d"/><path d="M677 108h15v20h-15z" fill="#2c221e"/><path d="M589 69h18v56h-18z" fill="#a47a50"/><path d="M592 75h12m-12 12h12m-12 12h12m-12 12h12" stroke="#533924" stroke-width="2"/>
+                <path d="M12 128h684v9H12z" fill="#27201b"/><path d="M20 137h677v6H20z" fill="#bb8654"/><path d="M17 143h682v4H17z" fill="#3b2921"/>
+              </g>
+              <g fill="#d4a268" stroke="#39271d" stroke-width="2"><circle cx="55" cy="151" r="16" class="wheel"/><circle cx="142" cy="151" r="16" class="wheel"/><circle cx="225" cy="151" r="14" class="wheel"/><circle cx="281" cy="151" r="14" class="wheel"/><circle cx="372" cy="151" r="17" class="wheel"/><circle cx="432" cy="151" r="22" class="wheel"/><circle cx="503" cy="151" r="22" class="wheel"/><circle cx="565" cy="151" r="22" class="wheel"/><circle cx="651" cy="151" r="15" class="wheel"/></g>
+              <g stroke="#3b281d" stroke-width="2" fill="none"><path d="M55 137v28m-14-14h28m73-14v28m-14-14h28m76-10v20m-10-10h20m46-10v20m-10-10h20m81-12v24m-12-12h24m60-17v34m-17-17h34m54-22v44m-22-22h44m49-22v44m-22-22h44m86-15v30m-15-15h30"/></g>
+              <g fill="#38261e"><circle cx="55" cy="151" r="5"/><circle cx="142" cy="151" r="5"/><circle cx="225" cy="151" r="4"/><circle cx="281" cy="151" r="4"/><circle cx="372" cy="151" r="5"/><circle cx="432" cy="151" r="6"/><circle cx="503" cy="151" r="6"/><circle cx="565" cy="151" r="6"/><circle cx="651" cy="151" r="4"/></g>
+              <path class="drive-rod" d="M430 154h138" fill="none" stroke="#e1b47c" stroke-width="5" stroke-linecap="round"/><path d="M395 132h185" fill="none" stroke="#d6aa77" stroke-width="3"/><g fill="#d5a776"><circle cx="420" cy="86" r="2"/><circle cx="456" cy="81" r="2"/><circle cx="486" cy="80" r="2"/><circle cx="518" cy="80" r="2"/><circle cx="550" cy="83" r="2"/><circle cx="576" cy="87" r="2"/></g>
+              <circle class="lamp-glow" cx="681" cy="96" r="27" fill="url(#lamp)"/><circle cx="681" cy="96" r="6" fill="#ffe3a4" stroke="#503322" stroke-width="2"/>
+            </svg>
+          </div></div>
+          <article class="ticket" id="final-ticket" aria-label="Your date ticket"><div class="ticket-main"><div class="ticket-illustration"><div><p class="ticket-brand">Date night railway</p><h3>STATION<br>DATE NIGHT</h3></div><svg class="ticket-locomotive" viewBox="0 0 230 95" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g fill="#42271b" stroke="#42271b" stroke-linejoin="round"><path d="M5 69h218v7H5zM18 44h53v25H18zM17 40h57l-5-5H22zM74 52h27v17H74zM101 29h27v40h-27zM98 25h32v5H98zM131 48h63v21h-63zM133 43h60v6h-60zM161 33h11v11h-11zM158 30h17v4h-17zM195 48h17l9 15v6h-26zM211 54h14v15h-14z"/><path d="M12 77h214" fill="none" stroke-width="2"/><path d="M23 49h39v13H23zM106 35h17v19h-17z" fill="#e8b683"/><path d="M142 52h43m-43 5h43m-43 5h43M31 66h34" fill="none" stroke="#bd8454" stroke-width="1.5"/><circle cx="38" cy="80" r="10"/><circle cx="82" cy="80" r="9"/><circle cx="116" cy="80" r="11"/><circle cx="157" cy="80" r="12"/><circle cx="190" cy="80" r="12"/><circle cx="216" cy="80" r="8"/></g><g fill="none" stroke="#dda974" stroke-width="1.6"><circle cx="38" cy="80" r="6"/><circle cx="82" cy="80" r="5"/><circle cx="116" cy="80" r="7"/><circle cx="157" cy="80" r="8"/><circle cx="190" cy="80" r="8"/><circle cx="216" cy="80" r="4"/><path d="M153 80h39"/></g><g fill="#42271b"><circle cx="38" cy="80" r="2"/><circle cx="82" cy="80" r="2"/><circle cx="116" cy="80" r="2"/><circle cx="157" cy="80" r="2"/><circle cx="190" cy="80" r="2"/><circle cx="216" cy="80" r="2"/></g><circle cx="220" cy="55" r="3" fill="#fff0b7"/></svg></div><div class="ticket-body"><p class="ticket-label">Boarding pass</p><p class="ticket-title">Our next little adventure</p><p class="ticket-label">Departure</p><p class="ticket-value" id="ticket-date"></p><p class="ticket-label">Plan</p><p class="ticket-value" id="ticket-idea"></p><p class="ticket-label" id="ticket-food-label">Café</p><p class="ticket-value" id="ticket-cafe"></p><p class="ticket-label">Itinerary</p><p class="ticket-value" id="ticket-itinerary"></p></div><div class="ticket-side"><div class="ticket-side-inner"><strong>CONTROL</strong><small>YOU + ME · SEAT NEXT TO ME</small><small>VALID FOR A LOVELY TIME</small></div></div></div></article>
+          <p class="note">I’m really looking forward to spending this time with you. See you at the station.</p>
+          <button class="button" id="calendar">Add our date to calendar</button><br><button class="button secondary" id="restart">Plan another route</button><p id="status" class="hidden" role="status"></p>
+        </section>
       </section>
-
-      <section class="step" data-step="1">
-        <svg class="icon success-mark" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/><path d="M9 11.5h.01M15 11.5h.01M9 15c1.8 1.3 4.2 1.3 6 0"/></svg>
-        <h2>你答应啦！<span class="accent">我好开心</span></h2>
-        <p class="lead">谢谢你愿意和我一起度过这个周末。想到很快就能见到你，我已经开始期待啦！</p>
-        <div class="actions"><button class="primary" type="button" data-next>继续计划约会<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></button><button class="text-button" type="button" data-back>返回</button></div>
-      </section>
-
-      <section class="step" data-step="2">
-        <div class="progress" aria-label="第 1 步，共 4 步"><span class="done"></span><span></span><span></span><span></span></div>
-        <h2>选一个属于我们的<span class="accent">日子</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></h2>
-        <p class="lead">两个日子，一个让人期待的约会。</p>
-        <div class="choices">
-          <div class="choice"><input id="day-26" name="date" type="radio" value="2026 年 9 月 26 日，星期六"><label for="day-26"><strong>9 月 26 日</strong><small>星期六 · 开启周末模式</small></label></div>
-          <div class="choice"><input id="day-27" name="date" type="radio" value="2026 年 9 月 27 日，星期日"><label for="day-27"><strong>9 月 27 日</strong><small>星期日 · 慢慢享受甜蜜</small></label></div>
-        </div>
-        <p class="error" role="alert"></p>
-        <div class="actions"><button class="primary" type="button" data-next>选择时间</button><button class="text-button" type="button" data-back>返回</button></div>
-      </section>
-
-      <section class="step" data-step="3">
-        <div class="progress" aria-label="第 2 步，共 4 步"><span class="done"></span><span class="done"></span><span></span><span></span></div>
-        <h2>我们几点<span class="accent">见面？</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></h2>
-        <p class="lead">选一个最适合你的时间。</p>
-        <fieldset class="time-fieldset"><legend>见面时间</legend><div class="time-choices" id="time-choices"></div><p class="hint">可选择上午 8 点至晚上 10 点，每 30 分钟一个时段。</p></fieldset>
-        <p class="error" role="alert"></p>
-        <div class="actions"><button class="primary" type="button" data-next>选择约会方式</button><button class="text-button" type="button" data-back>返回</button></div>
-      </section>
-
-      <section class="step" data-step="4">
-        <div class="progress" aria-label="第 3 步，共 4 步"><span class="done"></span><span class="done"></span><span class="done"></span><span></span></div>
-        <h2>想要怎样的<span class="accent">约会？</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg></h2>
-        <p class="lead">出去走走，还是在家享受悠闲时光？</p>
-        <div class="choices">
-          <div class="choice"><input id="out" name="plan" type="radio" value="一起出去约会"><label for="out"><strong>一起出去玩 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></strong><small>好好打扮、散散步，再吃点喜欢的</small></label></div>
-          <div class="choice"><input id="home" name="plan" type="radio" value="一起待在家里"><label for="home"><strong>一起待在家 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-9Z"/></svg></strong><small>舒服的衣服、喜欢的食物，慢慢享受</small></label></div>
-        </div>
-        <p class="error" role="alert"></p>
-        <div class="actions"><button class="primary" type="button" data-next>选择额外选项</button><button class="text-button" type="button" data-back>返回</button></div>
-      </section>
-
-      <section class="step" data-step="5">
-        <div class="progress" aria-label="第 4 步，共 4 步"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span></div>
-        <h2>我们的<span class="accent">额外选项</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg></h2>
-        <p class="lead">把约会的小细节也一起决定好。</p>
-        <div class="extras">
-          <section class="option-section extras-panel" id="out-options">
-            <h3>出去玩的安排</h3>
-            <div class="option-grid">
-              <div class="field"><label for="location">想去哪里？</label><select id="location" name="location"><option>🛍️ 商场</option><option>🌳 公园</option><option>☕ 咖啡店</option><option>🎁 你来选个惊喜</option><option>🗺️ 不止一个地方</option></select></div>
-              <div class="field"><label for="cuisine">想吃什么料理？</label><select id="cuisine" name="cuisine"><option>🥢 中餐</option><option>🍣 日料</option><option>🍲 韩式</option><option>🍝 西餐</option><option>🍲 火锅</option><option>🍰 甜品和咖啡</option><option>💬 超过一个请找宝贝讨论</option></select></div>
-              <div class="field"><label for="out-activity">想做什么活动？</label><select id="out-activity" name="outActivity"><option>🧶 Tufting</option><option>🧗 攀岩</option><option>🏺 陶瓷</option><option>🧩 拼豆</option><option>🛍️ 逛街</option><option>🎬 看电影</option><option>🖼️ 看展览</option><option>🏸 去运动</option><option>✨ 交给你安排</option></select></div>
-              <div class="field"><label for="outfit">当天穿搭？</label><select id="outfit" name="outfit"><option>👕 舒服休闲</option><option>✨ 认真打扮一下</option><option>🎨 穿同色系</option><option>💑 情侣装</option><option>💗 你喜欢就好</option></select></div>
-              <div class="field"><label for="arrival">谁先到？</label><select id="arrival" name="arrival"><option>🙋 我先到等你</option><option>🙋‍♀️ 你先到等我</option><option>🤝 一起到</option><option>⏰ 谁先到谁等一下</option></select></div>
-              <div class="field"><label for="transport">交通模式？</label><select id="transport" name="transport"><option>🚗 我载你</option><option>🚆 搭火车</option><option>📍 你来找我，然后我载你</option></select></div>
-            </div>
-          </section>
-
-          <section class="option-section extras-panel" id="home-options" hidden>
-            <h3>待在家的安排</h3>
-            <div class="option-grid">
-              <div class="field"><label for="whose-home">去谁的家？</label><select id="whose-home" name="whoseHome"><option>🏠 去你家</option><option>🛋️ 来我家</option><option>💭 当天再决定</option></select></div>
-              <div class="field"><label for="home-food">想吃什么？</label><select id="home-food" name="homeFood"><option>🥢 中式</option><option>🍝 西式</option><option>🍜 台式</option><option>🍣 日式</option><option>🌶️ 泰式</option><option>🍲 韩式</option><option>🥡 外卖</option><option>🍿 零食和甜点</option><option>🍳 一起做饭</option><option>💬 超过一个请找宝贝讨论</option></select></div>
-              <div class="field"><label for="home-activity">在家做什么？</label><select id="home-activity" name="homeActivity"><option>📺 追剧</option><option>😴 休息睡觉</option><option>🗺️ 一起规划一下之后去哪里玩</option><option>🧁 做饭或烘焙</option><option>🎵 听歌聊天</option><option>☁️ 什么都不安排</option></select></div>
-              <div class="field"><label for="home-outfit">在家穿什么？</label><select id="home-outfit" name="homeOutfit"><option>🧸 舒服的居家服</option><option>🌙 睡衣模式</option><option>🎨 穿同色系</option><option>😏 你懂的</option></select></div>
-              <div class="field"><label for="home-prep">谁来准备？</label><select id="home-prep" name="homePrep"><option>🙋 我来准备</option><option>🙋‍♀️ 你来准备</option><option>🤝 一起准备</option><option>🎁 互相给个惊喜</option></select></div>
-            </div>
-          </section>
-
-          <section class="option-section">
-            <h3>我们的小默契</h3>
-            <div class="option-grid">
-              <div class="field"><label for="first-words">见面第一句想说？</label><select id="first-words" name="firstWords"><option>💌 好久不见，我想你了</option><option>🥰 终于见到你啦</option><option>💋 宝贝亲一个</option><option>🫂 先抱一下再说</option><option>🎈 到时候自然发挥</option></select></div>
-              <div class="field"><label for="goodbye">结束时想怎样告别？</label><select id="goodbye" name="goodbye"><option>🫂 抱一下</option><option>💋 先问问，再决定要不要亲一下</option><option>🥰 亲亲抱抱举高高</option></select></div>
-              <div class="field"><label for="hands">今天要牵手吗？</label><select id="hands" name="hands"><option>🤝 想牵手</option><option>🙈 等你主动</option></select></div>
-              <div class="field"><label for="initiative">今天谁主动？</label><select id="initiative" name="initiative"><option>🙋 我主动一点</option><option>💗 你主动一点</option><option>🔄 轮流主动</option></select></div>
-              <div class="field"><label for="phones">手机要放一边吗？</label><select id="phones" name="phones"><option>📵 约会时尽量不按手机</option><option>📸 拍完照就收起来</option><option>🍽️ 吃饭时放一边</option></select></div>
-              <div class="field"><label for="distance">今天的距离怎么样？</label><select id="distance" name="distance"><option>💞 靠近一点</option><option>🥰 贴贴</option><option>🌸 可以有一小小点的距离</option></select></div>
-              <div class="field"><label for="photos">拍照计划？</label><select id="photos" name="photos"><option>📸 多拍一些留念</option><option>🌸 拍几张自然照</option><option>💕 至少一张合照</option></select></div>
-            </div>
-          </section>
-        </div>
-        <p class="error" role="alert"></p>
-        <div class="actions"><button class="primary" type="button" id="review">确认约会安排</button><button class="text-button" type="button" data-back>返回</button></div>
-      </section>
-
-      <section class="step" data-step="6">
-        <svg class="icon success-mark" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-        <h2>要把安排<span class="accent">发送给他吗？</span> <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg></h2>
-        <p class="lead">确认一下我们的约会安排，然后发送给他吧。想调整的话，也可以随时返回修改。</p>
-        <dl class="summary"><div><dt>日期</dt><dd id="summary-date"></dd></div><div><dt>时间</dt><dd id="summary-time"></dd></div><div><dt>安排</dt><dd id="summary-plan"></dd></div><div><dt>专属安排</dt><dd id="summary-specific"></dd></div><div><dt>我们的小默契</dt><dd id="summary-common"></dd></div></dl>
-        <div class="actions"><button class="primary" type="submit">发送给他<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg></button><button class="text-button" type="button" data-back>返回修改</button></div>
-      </section>
-    </form>
-  </main>
-
-  <script>
-    // 填入你的 GitHub 邮箱
-    const HOST_EMAIL = "modquack@gmail.com";
-
-    const form = document.querySelector("#date-form");
-    const steps = [...document.querySelectorAll(".step")];
-    let current = 0;
-
-    for (let minutes = 8 * 60; minutes <= 22 * 60; minutes += 30) {
-      const hour = String(Math.floor(minutes / 60)).padStart(2, "0");
-      const minute = String(minutes % 60).padStart(2, "0");
-      const value = `${hour}:${minute}`;
-      const wrapper = document.createElement("div");
-      const input = document.createElement("input");
-      const label = document.createElement("label");
-      wrapper.className = "time-choice";
-      input.type = "radio";
-      input.name = "time";
-      input.id = `time-${hour}-${minute}`;
-      input.value = value;
-      label.htmlFor = input.id;
-      label.textContent = new Date(`2000-01-01T${value}`).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
-      wrapper.append(input, label);
-      document.querySelector("#time-choices").append(wrapper);
-    }
-
-    function showStep(index) {
-      steps[current].classList.remove("active");
-      current = index;
-      if (current === 5) updateExtraOptions();
-      steps[current].classList.add("active");
-      const heading = steps[current].querySelector("h1, h2");
-      heading?.setAttribute("tabindex", "-1");
-      heading?.focus({ preventScroll: true });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function error(message) {
-      const target = steps[current].querySelector(".error");
-      if (target) target.textContent = message;
-      return false;
-    }
-
-    function validStep() {
-      steps[current].querySelector(".error")?.replaceChildren();
-      if (current === 2 && !form.date.value) return error("请先选择其中一个日期。");
-      if (current === 3 && !form.time.value) return error("请选择见面时间。");
-      if (current === 4 && !form.plan.value) return error("请选择出去约会或待在家里。");
-      return true;
-    }
-
-    function updateExtraOptions() {
-      const stayingHome = form.plan.value === "一起待在家里";
-      document.querySelector("#out-options").hidden = stayingHome;
-      document.querySelector("#home-options").hidden = !stayingHome;
-    }
-
-    function extraDetails() {
-      const value = name => form.elements[name].value;
-      const specific = form.plan.value === "一起出去约会"
-        ? `地点：${value("location")}；料理：${value("cuisine")}；活动：${value("outActivity")}；穿搭：${value("outfit")}；谁先到：${value("arrival")}；交通：${value("transport")}`
-        : `地点：${value("whoseHome")}；吃什么：${value("homeFood")}；活动：${value("homeActivity")}；穿搭：${value("homeOutfit")}；准备：${value("homePrep")}`;
-      const common = `第一句话：${value("firstWords")}；告别：${value("goodbye")}；牵手：${value("hands")}；主动：${value("initiative")}；手机：${value("phones")}；距离：${value("distance")}；拍照：${value("photos")}`;
-      return { specific, common };
-    }
-
-    document.querySelectorAll("[data-next]").forEach(button => button.addEventListener("click", () => {
-      if (validStep()) showStep(current + 1);
-    }));
-    document.querySelectorAll("[data-back]").forEach(button => button.addEventListener("click", () => showStep(current - 1)));
-
-    const softNo = document.querySelector("#soft-no");
-    const invitationActions = document.querySelector("#invitation-actions");
-    const dodgeLabels = [
-      "再考虑一下嘛～", "很久没见了", "有点想你了", "这个周末想见你", "我知道你也想见我",
-      "你想做什么都陪你", "保证不会让你后悔", "答应我好不好", "还不如直接答应我", "最近总会想到你",
-      "吃什么都由你决定", "给我一点你的时间吧", "就一个美好的晚上？", "拜托拜托啦", "好啦，这次让你点到",
-      "哎呀，又被你点到啦", "你越点，我跑得越快", "差一点点就抓到我啦", "别装啦，你明明很期待", "再点一下就答应我嘛"
-    ];
-    let dodges = 0;
-
-    softNo.addEventListener("click", () => {
-      const message = dodgeLabels[dodges % dodgeLabels.length];
-      dodges += 1;
-      softNo.textContent = message;
-      const minimumTop = invitationActions.querySelector(".primary").offsetHeight + 16;
-      softNo.classList.add("is-moving");
-      softNo.style.right = "auto";
-      softNo.style.left = `${Math.random() * Math.max(0, invitationActions.clientWidth - softNo.offsetWidth)}px`;
-      softNo.style.top = `${minimumTop + Math.random() * Math.max(0, invitationActions.clientHeight - softNo.offsetHeight - minimumTop)}px`;
-    });
-
-    document.querySelector("#review").addEventListener("click", () => {
-      if (!validStep()) return;
-      const time = new Date(`2000-01-01T${form.time.value}`).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
-      const details = extraDetails();
-      document.querySelector("#summary-date").textContent = form.date.value;
-      document.querySelector("#summary-time").textContent = time;
-      document.querySelector("#summary-plan").textContent = form.plan.value;
-      document.querySelector("#summary-specific").textContent = details.specific;
-      document.querySelector("#summary-common").textContent = details.common;
-      showStep(6);
-    });
-
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      const subject = "约会说定啦";
-      const details = extraDetails();
-      const body = [
-        "我们的约会安排好啦！",
-        "",
-        `日期：${form.date.value}`,
-        `时间：${form.time.value}`,
-        `安排：${form.plan.value}`,
-        `专属安排：${details.specific}`,
-        `我们的小默契：${details.common}`,
-        "",
-        "开始期待啦"
-      ].join("\n");
-      window.location.href = `mailto:${HOST_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    });
-  </script>
-</body>
+    </main>
+    <script>
+      const plan = { date:"", setting:"", idea:"", itinerary:"", activity:"", food:"", foodLabel:"", ics:"" };
+      const steps = [...document.querySelectorAll(".step")], rails = [...document.querySelectorAll(".rail span")];
+      function show(n) { const page=document.body.classList.contains("short-route") && n>4 ? n-1 : n, total=document.body.classList.contains("short-route") ? 5 : 6; steps.forEach(x => x.classList.toggle("current", +x.dataset.step === n)); rails.forEach((x,i) => x.classList.toggle("active", i < page)); document.querySelector(".stage").dataset.page=`PAGE ${page} / ${total}`; const heading=document.querySelector(`.step[data-step="${n}"] h2`); heading.setAttribute("tabindex","-1"); heading.focus({preventScroll:true}); }
+      document.getElementById("open-book").onclick=()=>{ document.body.classList.add("book-open"); show(1); };
+      document.querySelectorAll("[data-date]").forEach(b => b.onclick = () => { plan.date=b.dataset.date; plan.ics=b.dataset.ics; show(2); });
+      const picker = [...document.querySelectorAll("[data-picker-choice]")];
+      function configurePicker(home, afterActivity=false) { const stop=afterActivity ? "fifth" : "fourth"; const copy = home ? [`${stop} stop · lunch plans`,"How should we do lunch?","Pick a little outing or keep it easy at home.",["OUT","Eat out for lunch","Find somewhere nice before returning home"],["DELIVERY","Get lunch delivered","Stay in, get comfortable, and take it slow"]] : [`${stop} stop · pick the café`,"Which café should we go to?","You get to choose our first delicious stop.",["FAMILIAR","Your favourite café","A comfortable classic with your usual order"],["NEW","A new café to try","Find a fresh little place together"]]; ["picker-eyebrow","picker-title","picker-lead"].forEach((id,i)=>document.getElementById(id).textContent=copy[i]); picker.forEach((button,i)=>{ const [badge,title,detail]=copy[i+3]; button.dataset.value=title; button.innerHTML=`<span class="badge">${badge}</span><strong>${title}</strong><small>${detail}</small>`; }); plan.foodLabel=home ? "Lunch" : "Café"; }
+      function renderTicket() { ["route-date","ticket-date"].forEach(id=>document.getElementById(id).textContent=plan.date); ["route-idea","ticket-idea"].forEach(id=>document.getElementById(id).textContent=plan.idea); document.getElementById("ticket-food-label").textContent=plan.foodLabel; document.getElementById("ticket-cafe").textContent=plan.food; document.getElementById("ticket-itinerary").textContent=plan.itinerary.replace("Lunch choice",plan.food); show(6); const ticket=document.getElementById("final-ticket"), train=document.getElementById("passing-train"); ticket.classList.remove("arriving"); train.classList.remove("run"); void ticket.offsetWidth; ticket.classList.add("arriving"); train.classList.add("run"); }
+      document.querySelectorAll("[data-setting]").forEach(b => b.onclick = () => { plan.setting=b.dataset.setting; document.querySelectorAll("[data-route-setting]").forEach(route=>route.classList.toggle("hidden",route.dataset.routeSetting!==plan.setting)); show(3); });
+      document.querySelectorAll("[data-route]").forEach(b => b.onclick = () => { plan.idea=b.dataset.route; plan.itinerary=b.dataset.itinerary; document.body.classList.toggle("short-route",!b.dataset.pickActivity); if (b.dataset.pickActivity) { activityForm.classList.add("hidden"); activityInput.value=""; return show(4); } configurePicker(plan.setting==="home"); show(5); });
+      document.querySelectorAll("[data-activity]").forEach(b => b.onclick = () => { plan.activity=b.dataset.activity; plan.itinerary=plan.itinerary.replace("Activity choice",plan.activity); configurePicker(false,true); show(5); });
+      const activityForm=document.getElementById("activity-form"), activityInput=document.getElementById("activity-input");
+      document.getElementById("suggest-activity").onclick=()=>{ activityForm.classList.remove("hidden"); activityInput.focus(); };
+      activityForm.onsubmit=e=>{ e.preventDefault(); plan.activity=activityInput.value.trim(); if (!plan.activity) return; plan.itinerary=plan.itinerary.replace("Activity choice",plan.activity); configurePicker(false,true); show(5); };
+      picker.forEach(b => b.onclick = () => { plan.food=b.dataset.value; renderTicket(); });
+      document.getElementById("restart").onclick = () => { Object.assign(plan,{date:"",setting:"",idea:"",itinerary:"",activity:"",food:"",foodLabel:"",ics:""}); document.body.classList.remove("short-route"); show(1); };
+      document.getElementById("calendar").onclick = () => { const start=plan.ics, next=new Date(Date.UTC(+start.slice(0,4),+start.slice(4,6)-1,+start.slice(6,8)+1)).toISOString().slice(0,10).replaceAll("-",""); const event=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${start}\nDTEND;VALUE=DATE:${next}\nSUMMARY:Our next little adventure\nDESCRIPTION:${plan.idea}; ${plan.foodLabel}: ${plan.food}. ${plan.itinerary.replace("Lunch choice",plan.food)}.\nEND:VEVENT\nEND:VCALENDAR`; const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([event],{type:"text/calendar"})),download:"our-date.ics"}); a.click(); URL.revokeObjectURL(a.href); const status=document.getElementById("status"); status.textContent="Your calendar file is ready to add."; status.classList.remove("hidden"); };
+    </script>
+  </body>
 </html>
