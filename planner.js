@@ -5,6 +5,7 @@
     { iso: '2026-10-03', label: 'Saturday, October 3, 2026', short: 'Sat, Oct 3', badge: 'Saturday Express' },
     { iso: '2026-10-04', label: 'Sunday, October 4, 2026', short: 'Sun, Oct 4', badge: 'Sunday Line' },
   ];
+  const TIME_ZONE = 'Asia/Kuala_Lumpur';
 
   const ROUTES = {
     tufting: { setting: 'out', title: 'Finish our tufting', short: 'Finish tufting', description: 'Lunch, tufting at two, a mall stroll, and dinner.' },
@@ -25,12 +26,28 @@
   };
 
   function createPlan() {
-    return { date: null, setting: null, route: null, activity: null, food: null };
+    return { date: null, setting: null, route: null, activity: null, food: null, startTime: null, endTime: null };
   }
 
   function selectDate(plan, iso) {
     if (!DATES.some((item) => item.iso === iso)) throw new Error('Unknown date');
     return { ...plan, date: iso };
+  }
+
+  function validTime(value) {
+    return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+  }
+
+  function timeCoversTufting(startTime, endTime) {
+    return startTime <= '14:00' && endTime > '14:00';
+  }
+
+  function selectTime(plan, startTime, endTime) {
+    if (startTime == null && endTime == null) return { ...plan, startTime: null, endTime: null };
+    if (!validTime(startTime) || !validTime(endTime)) throw new Error('Choose a valid time for both fields');
+    if (endTime <= startTime) throw new Error('End time must be after start time');
+    if (plan.route === 'tufting' && !timeCoversTufting(startTime, endTime)) throw new Error('Include 2:00 PM for the tufting stop');
+    return { ...plan, startTime, endTime };
   }
 
   function selectSetting(plan, setting) {
@@ -42,7 +59,8 @@
   function selectRoute(plan, route) {
     if (!Object.hasOwn(ROUTES, route) || ROUTES[route].setting !== plan.setting) throw new Error('Route does not match setting');
     if (plan.route === route) return plan;
-    return { ...plan, route, activity: null };
+    const keepTime = route !== 'tufting' || !plan.startTime || timeCoversTufting(plan.startTime, plan.endTime);
+    return { ...plan, route, activity: null, startTime: keepTime ? plan.startTime : null, endTime: keepTime ? plan.endTime : null };
   }
 
   function selectActivity(plan, activity) {
@@ -58,11 +76,20 @@
   }
 
   function getSteps(plan) {
-    return ['date', 'setting', 'route', ...(plan.route === 'explore' ? ['activity'] : []), 'food', 'ticket'];
+    return ['date', 'setting', 'route', ...(plan.route === 'explore' ? ['activity'] : []), 'food', 'time', 'ticket'];
   }
 
   function isComplete(plan) {
-    return Boolean(plan.date && plan.setting && plan.route && plan.food && (plan.route !== 'explore' || plan.activity));
+    return Boolean(plan.date && plan.setting && plan.route && plan.food && plan.startTime && plan.endTime && (plan.route !== 'explore' || plan.activity));
+  }
+
+  function formatTime(value) {
+    const [hour, minute] = value.split(':').map(Number);
+    return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
+  }
+
+  function getTimeLabel(plan) {
+    return plan.startTime && plan.endTime ? `${formatTime(plan.startTime)}–${formatTime(plan.endTime)} MYT` : null;
   }
 
   function getDate(plan) {
@@ -86,8 +113,7 @@
   }
 
   function isExpired(iso, now = new Date()) {
-    const localToday = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
-    return iso < localToday;
+    return new Date(`${iso}T23:59:59.999+08:00`) < now;
   }
 
   function escapeCalendar(value) {
@@ -113,13 +139,14 @@
   function buildCalendar(plan, now = new Date()) {
     if (!isComplete(plan)) throw new Error('Complete the plan before adding it to a calendar');
     if (isExpired(plan.date, now)) throw new Error('The selected date has passed');
+    const start = new Date(`${plan.date}T${plan.startTime}:00+08:00`);
+    const end = new Date(`${plan.date}T${plan.endTime}:00+08:00`);
+    if (start <= now) throw new Error('The selected time has passed');
     const compactDate = plan.date.replace(/-/g, '');
-    const next = new Date(`${plan.date}T00:00:00Z`);
-    next.setUTCDate(next.getUTCDate() + 1);
-    const compactNext = next.toISOString().slice(0, 10).replace(/-/g, '');
+    const calendarStamp = (date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const uid = `${compactDate}-${plan.setting}-${plan.route}-${stamp}@date-railway.local`;
-    const details = `${getDate(plan).label}. ${ROUTES[plan.route].title}. ${getItinerary(plan)}.`;
+    const details = `${getDate(plan).label}, ${getTimeLabel(plan)}. ${ROUTES[plan.route].title}. ${getItinerary(plan)}.`;
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -128,8 +155,8 @@
       'BEGIN:VEVENT',
       `UID:${uid}`,
       `DTSTAMP:${stamp}`,
-      `DTSTART;VALUE=DATE:${compactDate}`,
-      `DTEND;VALUE=DATE:${compactNext}`,
+      `DTSTART:${calendarStamp(start)}`,
+      `DTEND:${calendarStamp(end)}`,
       'SUMMARY:Our next little adventure',
       `DESCRIPTION:${escapeCalendar(details)}`,
       'END:VEVENT',
@@ -138,7 +165,7 @@
     return lines.map(foldCalendarLine).join('\r\n') + '\r\n';
   }
 
-  const api = { DATES, ROUTES, FOODS, createPlan, selectDate, selectSetting, selectRoute, selectActivity, selectFood, getSteps, isComplete, getDate, getFood, getItinerary, isExpired, buildCalendar };
+  const api = { DATES, TIME_ZONE, ROUTES, FOODS, createPlan, selectDate, selectTime, selectSetting, selectRoute, selectActivity, selectFood, getSteps, isComplete, getDate, getFood, getTimeLabel, getItinerary, isExpired, buildCalendar };
   root.DateRailwayPlanner = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

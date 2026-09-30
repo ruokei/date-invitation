@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const P = window.DateRailwayPlanner;
+  const E = window.DateRailwayEmail;
   const book = document.querySelector('#book');
   const cover = document.querySelector('#book-cover');
   const spread = document.querySelector('#spread');
@@ -17,7 +18,11 @@
   const ticket = document.querySelector('#ticket');
   const status = document.querySelector('#status');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const stopNames = { date: 'Day', setting: 'Mood', route: 'Route', activity: 'Activity', food: 'Lunch', ticket: 'Ticket' };
+  const forceMotion = new URLSearchParams(window.location.search).get('motion') === 'full';
+  if (forceMotion) document.documentElement.classList.add('motion-full');
+  const motionReduced = () => reducedMotion.matches && !forceMotion;
+  document.querySelector('#motion-link').hidden = !motionReduced();
+  const stopNames = { date: 'Day', setting: 'Mood', route: 'Route', activity: 'Activity', food: 'Lunch', time: 'Time', ticket: 'Ticket' };
   const presetActivities = ['Bead art', 'Rock climbing', 'Pottery'];
   let plan = P.createPlan();
   let current = 'date';
@@ -33,6 +38,7 @@
     if (step === 'route') return Boolean(plan.route);
     if (step === 'activity') return Boolean(plan.activity);
     if (step === 'food') return Boolean(plan.food);
+    if (step === 'time') return Boolean(plan.startTime && plan.endTime);
     return P.isComplete(plan);
   }
 
@@ -67,6 +73,7 @@
   function renderRouteList() {
     const lines = [
       ['Departure', P.getDate(plan)?.short],
+      ['Time', P.getTimeLabel(plan)],
       ['Mood', plan.setting === 'out' ? 'Out together' : plan.setting === 'home' ? 'At home together' : null],
       ['Route', plan.route ? P.ROUTES[plan.route].short : null],
       ...(plan.route === 'explore' ? [['Activity', plan.activity]] : []),
@@ -88,8 +95,8 @@
     }
     const compact = [
       P.getDate(plan)?.short,
+      P.getTimeLabel(plan),
       plan.route ? P.ROUTES[plan.route].short : plan.setting === 'out' ? 'Out together' : plan.setting === 'home' ? 'Stay in together' : null,
-      P.getFood(plan)?.title,
     ].filter(Boolean);
     document.querySelector('#mobile-summary-text').textContent = compact.join(' · ') || 'Choose a day to begin';
   }
@@ -115,10 +122,12 @@
     document.querySelector('#date-message').textContent = allExpired ? 'These dates have passed. Ask for an updated invitation.' : '';
     document.querySelector('#food-heading').textContent = plan.setting === 'home' ? 'How should we do lunch?' : 'Which café should we try?';
     document.querySelector('#food-lead').textContent = plan.setting === 'home' ? 'A little outing, or lunch delivered to our door?' : 'A familiar favourite, or somewhere new?';
+    document.querySelector('#tufting-note').hidden = plan.route !== 'tufting';
   }
 
   function renderTicket() {
     document.querySelector('#ticket-date').textContent = P.getDate(plan)?.label || '';
+    document.querySelector('#ticket-time').textContent = P.getTimeLabel(plan) || '';
     document.querySelector('#ticket-setting').textContent = plan.setting === 'out' ? 'Out together' : 'Stay in together';
     document.querySelector('#ticket-route').textContent = P.ROUTES[plan.route]?.title || '';
     document.querySelector('#ticket-activity').textContent = plan.activity || '';
@@ -131,7 +140,7 @@
     controls.hidden = current === 'ticket';
     backButton.hidden = current === 'date';
     continueButton.disabled = !hasAnswer(current);
-    continueButton.innerHTML = current === 'food' ? 'Make our ticket <span aria-hidden="true">→</span>' : 'Continue <span aria-hidden="true">→</span>';
+    continueButton.innerHTML = current === 'time' ? 'Make our ticket <span aria-hidden="true">→</span>' : 'Continue <span aria-hidden="true">→</span>';
   }
 
   function render() {
@@ -157,7 +166,7 @@
     const oldIndex = P.getSteps(plan).indexOf(previous);
     const newIndex = P.getSteps(plan).indexOf(step);
     removeTurningLeaf();
-    if (!options.initial && !reducedMotion.matches && window.innerWidth > 700 && oldIndex >= 0) {
+    if (!options.initial && !motionReduced() && window.innerWidth > 700 && oldIndex >= 0) {
       const leaf = document.createElement('div');
       const direction = newIndex < oldIndex ? 'backward' : 'forward';
       leaf.className = `turning-leaf ${direction}`;
@@ -174,10 +183,15 @@
     newElement.hidden = false;
     current = step;
     status.textContent = '';
+    if (step === 'time') {
+      document.querySelector('#start-time').value = plan.startTime || '';
+      document.querySelector('#end-time').value = plan.endTime || '';
+      document.querySelector('#time-message').textContent = '';
+    }
     render();
     if (step === 'ticket') playFinale();
     window.scrollTo({ top: 0, behavior: 'instant' });
-    const delay = reducedMotion.matches ? 0 : window.innerWidth <= 700 ? 100 : 520;
+    const delay = motionReduced() ? 0 : window.innerWidth <= 700 ? 100 : 520;
     window.setTimeout(() => newElement.querySelector('h2')?.focus({ preventScroll: false }), delay);
   }
 
@@ -254,7 +268,7 @@
     resetSteam();
     const endX = Math.max(6, (trainScene.clientWidth - 260) / 2);
     placeTrain(endX, endX + 260);
-    if (immediate || reducedMotion.matches) {
+    if (immediate || motionReduced()) {
       showDelivered();
       return;
     }
@@ -273,12 +287,12 @@
     stopFinale();
     finalStep.classList.remove('delivered');
     trainScene.classList.remove('delivered');
-    document.querySelector('#skip').hidden = reducedMotion.matches;
-    document.querySelector('#replay').hidden = !reducedMotion.matches;
+    document.querySelector('#skip').hidden = motionReduced();
+    document.querySelector('#replay').hidden = !motionReduced();
     status.textContent = '';
     const startX = -260;
     placeTrain(startX, 0);
-    if (reducedMotion.matches) return finishFinale(true);
+    if (motionReduced()) return finishFinale(true);
     const endX = Math.max(6, (trainScene.clientWidth - 260) / 2);
     const travel = endX - startX;
     const duration = 1130;
@@ -306,7 +320,7 @@
     book.classList.add('is-open');
     cover.inert = true;
     spread.inert = false;
-    const delay = reducedMotion.matches ? 0 : 780;
+    const delay = motionReduced() ? 0 : 780;
     window.setTimeout(() => book.classList.add('opened'), delay);
     window.setTimeout(() => document.querySelector('#date-heading').focus({ preventScroll: false }), delay);
   });
@@ -330,6 +344,26 @@
       input.setCustomValidity('');
     }
   });
+  function updateTime() {
+    const startTime = document.querySelector('#start-time').value;
+    const endTime = document.querySelector('#end-time').value;
+    const message = document.querySelector('#time-message');
+    try {
+      if (!startTime || !endTime) {
+        plan = P.selectTime(plan, null, null);
+        message.textContent = 'Choose both times to continue.';
+      } else {
+        plan = P.selectTime(plan, startTime, endTime);
+        message.textContent = '';
+      }
+    } catch (error) {
+      plan = P.selectTime(plan, null, null);
+      message.textContent = error.message;
+    }
+    render();
+  }
+  document.querySelector('#start-time').addEventListener('input', updateTime);
+  document.querySelector('#end-time').addEventListener('input', updateTime);
   continueButton.addEventListener('click', () => {
     if (!hasAnswer(current)) return;
     const route = P.getSteps(plan);
@@ -342,17 +376,29 @@
   document.querySelectorAll('[data-edit]').forEach((button) => button.addEventListener('click', () => showStep(button.dataset.edit)));
   document.querySelector('#skip').addEventListener('click', () => finishFinale(true));
   document.querySelector('#replay').addEventListener('click', playFinale);
+  function downloadContent(content, type, filename) {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  document.querySelector('#email').addEventListener('click', () => {
+    try {
+      const draft = E.buildEmailDraft(plan);
+      downloadContent(draft, 'message/rfc822;charset=utf-8', `our-date-${plan.date}.eml`);
+      status.textContent = 'Email draft downloaded for modquack@gmail.com. Open it in your email app, review it, and press Send.';
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
   document.querySelector('#calendar').addEventListener('click', () => {
     try {
       const calendar = P.buildCalendar(plan);
-      const url = URL.createObjectURL(new Blob([calendar], { type: 'text/calendar;charset=utf-8' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `our-date-${plan.date}.ics`;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+      downloadContent(calendar, 'text/calendar;charset=utf-8', `our-date-${plan.date}.ics`);
       status.textContent = 'Calendar file downloaded for the date shown above.';
     } catch (error) {
       status.textContent = error.message;
@@ -369,7 +415,8 @@
     if (document.hidden && current === 'ticket' && !finalStep.classList.contains('delivered')) finishFinale(true);
   });
   reducedMotion.addEventListener('change', () => {
-    if (reducedMotion.matches && current === 'ticket' && !finalStep.classList.contains('delivered')) finishFinale(true);
+    document.querySelector('#motion-link').hidden = !motionReduced();
+    if (motionReduced() && current === 'ticket' && !finalStep.classList.contains('delivered')) finishFinale(true);
   });
 
   render();
