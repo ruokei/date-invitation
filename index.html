@@ -1,260 +1,175 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#103f32" />
-    <title>The Date Railway · Our next little adventure</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap");
-      :root { --ink:#263c2f; --paper:#fbf2d9; --mist:#f4e7c9; --leaf:#103f32; --rose:#a44937; --gold:#b7783a; --line:#c9b698; }
-      * { box-sizing:border-box; }
-      body { min-height:100vh; margin:0; color:var(--ink); background:#efe0a9; background-image:radial-gradient(#b3874c33 .7px,transparent .8px); background-size:8px 8px; font:16px/1.5 "DM Mono",monospace; }
-      button { font:inherit; cursor:pointer; }
-      button:focus-visible { outline:3px solid var(--gold); outline-offset:4px; }
-      .shell { width:min(100% - 32px,840px); margin:auto; padding:42px 0 64px; }
-      .rail { display:flex; justify-content:center; gap:7px; margin-bottom:34px; }
-      .rail span { width:46px; height:4px; border-radius:4px; background:#c9b698; }
-      .rail span.active { background:var(--rose); }
-      .masthead { position:relative; margin:0; padding:42px 30px 38px; overflow:hidden; border:12px solid #07462f; border-bottom:0; border-radius:7px 7px 0 0; background:#0b6240; color:#fff6dd; text-align:center; box-shadow:0 20px 38px #5d3d202b; }
-      .masthead::before { content:""; position:absolute; inset:15px; border:1px solid #f5c46f99; pointer-events:none; }
-      .eyebrow { margin:0 0 8px; color:var(--leaf); letter-spacing:.13em; font-size:.73rem; font-weight:500; text-transform:uppercase; }
-      h1,h2 { font-family:"Playfair Display",serif; letter-spacing:-.045em; line-height:1.02; }
-      h1 { max-width:590px; margin:0 auto 13px; color:#fff4d6; font-size:clamp(2.6rem,8vw,5rem); }
-      .masthead .eyebrow { position:relative; color:#f3c46f; }
-      .intro { position:relative; max-width:500px; margin:auto; color:#f6e7c6; }
-      .stage { position:relative; min-height:480px; padding:clamp(28px,5vw,48px); overflow:hidden; border:12px solid #07462f; border-top:0; border-radius:0 0 7px 7px; background:#fff7dc; background-image:linear-gradient(90deg,transparent 49.6%,#b38b6255 50%,transparent 50.4%),radial-gradient(#a7794b3d .65px,transparent .8px); background-size:100% 100%,8px 8px; box-shadow:0 22px 42px #5d3d202d; }
-      .stage::before { content:""; position:absolute; top:0; bottom:0; left:50%; width:13px; background:linear-gradient(90deg,#724a2b55,transparent 45%,#fff9e8aa 50%,transparent 55%,#724a2b44); transform:translateX(-50%); pointer-events:none; }
-      .step { position:relative; display:none; transform-origin:left center; }
-      .step.current { display:block; animation:page-turn .55s cubic-bezier(.22,.75,.2,1) both; }
-      h2 { margin:0 0 10px; font-size:clamp(2rem,5vw,3.25rem); }
-      .lead { max-width:490px; margin:0 0 28px; color:#536158; }
-      .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
-      .choice { min-height:155px; padding:19px; border:1px solid var(--line); border-radius:14px; color:var(--ink); background:#fffdf8; text-align:left; transition:transform .18s, border-color .18s, box-shadow .18s; }
-      .choice:hover { border-color:var(--leaf); transform:translateY(-3px); box-shadow:0 10px 18px #38614d16; }
-      .choice strong,.choice small { display:block; }
-      .choice strong { margin:8px 0 5px; font:600 1.28rem "Playfair Display",serif; }
-      .choice small { color:#5b6a60; font-size:.76rem; }
-      .badge { display:inline-block; padding:4px 7px; color:#fff; background:var(--rose); font-size:.68rem; letter-spacing:.08em; }
-      .suggestion { grid-column:1 / -1; display:grid; grid-template-columns:1fr auto; gap:10px; padding:12px; border:1px solid var(--line); border-radius:12px; background:#fffdf8; }
-      .suggestion label { grid-column:1 / -1; color:#594d3c; font-size:.78rem; }
-      .suggestion input { min-width:0; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:7px; color:var(--ink); background:#fffaf0; font:inherit; }
-      .center { text-align:center; }
-      .route { display:grid; grid-template-columns:minmax(0,1fr) 20px minmax(0,1.8fr) 20px minmax(0,1fr); align-items:center; gap:8px; max-width:660px; margin:22px auto 30px; font-size:.79rem; }
-      .route span { position:relative; display:grid; place-items:center; min-height:68px; padding:20px 10px 8px; border:3px double #d5b780; color:#fff3d5; background:#103f32; box-shadow:0 5px 12px #4e39252e,inset 0 0 0 3px #103f32; text-align:center; line-height:1.25; }
-      .route span::before { content:attr(data-label); position:absolute; top:5px; left:0; right:0; color:#e3c48e; font-size:.54rem; letter-spacing:.18em; text-transform:uppercase; }
-      .route i { width:100%; height:8px; border-top:2px solid #a47c52; border-bottom:2px solid #a47c52; }
-      .step[data-step="6"] { position:relative; overflow:hidden; }
-      .reveal-scene { position:absolute; inset:8% -5% auto; height:190px; pointer-events:none; overflow:hidden; }
-      .rail-line { position:absolute; top:132px; left:0; width:100%; border-top:2px solid #a55d3f; opacity:.45; }
-      .passing-train { position:absolute; top:52px; left:-45%; width:min(480px,80vw); color:#34190f; opacity:0; filter:drop-shadow(0 9px 8px #6b2e1f44); }
-      .passing-train svg { display:block; width:100%; height:auto; }
-      .passing-train.run { animation:train-pass 1.4s cubic-bezier(.22,.7,.25,1) forwards; }
-      .ticket { position:relative; overflow:hidden; max-width:690px; margin:48px auto 28px; color:#351a0f; background:#f7bd87; border:1px solid #d68b5a; border-radius:3px; box-shadow:0 21px 40px #6b2e1f2b; text-align:left; }
-      .ticket::before { content:""; position:absolute; inset:0; opacity:.28; background-image:radial-gradient(#8a421f 0.55px,transparent .7px),linear-gradient(120deg,#fff4d6aa,transparent 40%); background-size:7px 7px,100% 100%; pointer-events:none; }
-      .ticket-main { position:relative; display:grid; grid-template-columns:1.05fr 1.18fr .43fr; min-height:305px; }
-      .ticket-illustration { display:flex; flex-direction:column; justify-content:space-between; padding:28px 22px 23px; border-right:2px dashed #a9613e; }
-      .ticket-brand { margin:0; font-size:.64rem; letter-spacing:.19em; text-transform:uppercase; }
-      .ticket-illustration h3 { margin:7px 0 0; font:600 clamp(1.55rem,4vw,2.35rem)/.9 "Playfair Display",serif; letter-spacing:.08em; }
-      .ticket-locomotive { width:100%; max-width:195px; margin-top:14px; }
-      .ticket-body { padding:29px 22px 18px; }
-      .ticket p { margin:0; }
-      .ticket-title { margin:4px 0 20px!important; font:600 clamp(1.6rem,4.2vw,2.45rem) "Playfair Display",serif; line-height:.98; }
-      .ticket-label { color:#6e351f; font-size:.61rem; letter-spacing:.12em; text-transform:uppercase; }
-      .ticket-value { margin:3px 0 13px!important; font-size:.78rem; }
-      .ticket-side { display:flex; align-items:center; justify-content:center; padding:18px 8px; color:#fff5e5; background:#c85343; }
-      .ticket-side-inner { display:grid; gap:20px; justify-items:center; writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; }
-      .ticket-side strong { font:600 1rem "Playfair Display",serif; letter-spacing:.12em; }
-      .ticket-side small { font-size:.58rem; letter-spacing:.13em; }
-      .ticket.arriving { animation:ticket-arrive .9s cubic-bezier(.18,.8,.2,1) .7s both; }
-      .button { min-height:48px; padding:0 20px; border:0; border-radius:8px; color:#fff; background:var(--rose); box-shadow:inset 0 -2px #883537; font-weight:500; }
-      .button:hover { background:#9e4042; }
-      .button.secondary,.button.secondary:hover,.button.secondary:active { margin-top:12px; color:var(--leaf); background:transparent; box-shadow:none; text-decoration:underline; text-underline-offset:4px; }
-      .note { max-width:470px; margin:0 auto 23px; color:#594d3c; }
-      .hidden { display:none; }
-      @keyframes page-turn { from { opacity:.2; transform:perspective(1500px) rotateY(-18deg) translateX(-24px); filter:brightness(.92); } to { opacity:1; transform:none; filter:none; } }
-      @keyframes train-pass { 0% { transform:translateX(0); opacity:0; } 10% { opacity:1; } 78% { opacity:1; } 100% { transform:translateX(160vw); opacity:0; } }
-      @keyframes ticket-arrive { 0% { opacity:0; transform:perspective(1000px) translateY(100px) scale(.4) rotateX(28deg); filter:blur(9px); } 100% { opacity:1; transform:none; filter:none; } }
-      @media (max-width:520px) { .shell { width:min(100% - 22px,760px); padding-top:25px; } .masthead { padding:34px 18px 29px; border-width:9px; } .stage { padding:25px 19px; border-width:9px; border-top:0; } .choices { grid-template-columns:1fr; } .ticket { margin-top:28px; } .ticket-main { grid-template-columns:1fr .98fr .38fr; min-height:280px; } .ticket-illustration { padding:21px 13px; } .ticket-body { padding:22px 13px 14px; } .ticket-side { padding:12px 5px; } .ticket-value { font-size:.7rem; } }
-      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } .passing-train,.ticket.arriving { animation:none!important; opacity:1; transform:none; filter:none; } }
-      /* The physical book is the interface: cover, leaves, and a last-page reveal. */
-      body { background:#efe1be; background-image:radial-gradient(#98775d24 .6px,transparent .7px); background-size:6px 6px; }
-      ::selection { color:#fffaf0; background:#103f32; }
-      .shell { width:min(100% - 28px,980px); padding:28px 0 70px; perspective:1800px; }
-      .rail { margin:0 auto 20px; opacity:0; transition:opacity .4s; }
-      .book-open .rail { opacity:1; }
-      .short-route .rail span:last-child { display:none; }
-      .masthead { width:min(100%,560px); min-height:720px; margin:14px auto 0; padding:14px; border:0; border-left:16px solid #092b26; border-radius:5px 13px 13px 5px; background:#103f32; box-shadow:3px 9px 0 #d9c6a2,14px 27px 55px #46311d55,inset -9px 0 10px #041e1b55; transform-origin:left center; z-index:2; }
-      .masthead::before { display:none; }
-      .cover-frame { display:flex; flex-direction:column; align-items:center; min-height:690px; padding:31px 30px 23px; border:1px solid #c9ac75; outline:1px solid #c9ac75; outline-offset:-9px; background:radial-gradient(circle at 50% 58%,#1b6049 0,#103f32 67%); }
-      .cover-edition,.cover-kicker,.cover-foot { margin:0; color:#dbc393; text-transform:uppercase; letter-spacing:.2em; font-size:.67rem; }
-      .cover-kicker { margin-top:55px; }
-      .masthead h1 { position:relative; margin:8px 0 0; max-width:none; color:#fff2cf; font-size:clamp(3.8rem,9vw,6rem); line-height:.9; letter-spacing:-.035em; text-shadow:0 3px 0 #061d19; }
-      .cover-art { position:relative; width:min(100%,420px); height:220px; margin:9px auto 0; overflow:hidden; color:#111e19; }
-      .cover-art svg { position:relative; z-index:1; width:100%; height:100%; color:#0b281f; filter:drop-shadow(0 2px 0 #e9bd74); }
-      .cover-sun { position:absolute; width:170px; height:170px; left:50%; top:18px; transform:translateX(-50%); border-radius:50%; background:#d39a64; box-shadow:0 0 0 11px #e7bc7a18; }
-      .cover-copy { max-width:310px; margin:2px auto 18px; color:#f3e0b8; font:italic 1.06rem/1.45 "Playfair Display",serif; }
-      .cover-open { min-height:53px; padding:0 23px; border:1px solid #f2dbad; border-radius:2px; color:#103f32; background:#f4d7a1; font-size:.84rem; font-weight:500; box-shadow:0 4px 0 #082b24; }
-      .cover-open:hover { background:#ffe7b8; }
-      .cover-open span { margin-left:13px; font-size:1.3em; }
-      .cover-foot { margin-top:auto; }
-      .stage { display:none; width:min(100%,880px); min-height:620px; margin:0 auto; padding:clamp(30px,6vw,60px); border:11px solid #103f32; border-left-width:18px; border-radius:3px 11px 11px 3px; background:#fbf2d9; background-image:linear-gradient(90deg,#b49b7660,transparent 17px,transparent 49.5%,#b49b7647 50%,transparent 50.5%),radial-gradient(#9c775023 .65px,transparent .7px); background-size:100% 100%,7px 7px; box-shadow:3px 7px 0 #dfd0ae,11px 24px 45px #543b2052; }
-      .stage::before { left:50%; opacity:.33; }
-      .stage::after { content:attr(data-page); position:absolute; right:35px; bottom:20px; color:#85694c; font-size:.7rem; letter-spacing:.15em; }
-      .book-open .masthead { display:none; }
-      .book-open .stage { display:block; animation:open-leaf .75s cubic-bezier(.16,.85,.3,1) both; }
-      .step.current { animation:page-turn .6s cubic-bezier(.16,.8,.2,1) both; }
-      .step:not(.current) { display:none; }
-      .step > .eyebrow { color:#9c5342; }
-      .step h2 { max-width:640px; margin-bottom:14px; color:#263c2f; }
-      .lead { max-width:550px; color:#594d3c; }
-      .choice { min-height:164px; border-radius:2px; border-color:#c9b698; background:#fffaf0; box-shadow:2px 4px 0 #d7c9ae; }
-      .choice:hover { border-color:#9b503e; box-shadow:3px 8px 14px #67482d20; }
-      .choice small { color:#5e5546; }
-      .badge { background:#a44937; }
-      .suggestion { border-radius:2px; background:#fffaf0; }
-      .button { border-radius:2px; background:#a44937; box-shadow:inset 0 -2px #713224; }
-      .button:hover { background:#893b2d; }
-      .step[data-step="6"] { min-height:710px; }
-      .step[data-step="6"] h2,.step[data-step="6"] > .eyebrow,.step[data-step="6"] .route { position:relative; z-index:2; }
-      .reveal-scene { z-index:1; top:91px; left:-60px; right:-60px; height:200px; }
-      .rail-line { top:152px; border-color:#8a6546; }
-      .reveal-scene { height:230px; background:linear-gradient(180deg,transparent 61%,#d9b99a22 85%,transparent); }
-      .rail-line { top:169px; height:15px; border-top:3px solid #76523c; border-bottom:2px solid #76523c; background:repeating-linear-gradient(90deg,transparent 0 28px,#815e45 28px 35px,transparent 35px 48px); opacity:.65; }
-      .reveal-scene:before,.reveal-scene:after { content:""; position:absolute; left:-30%; right:-30%; height:2px; background:repeating-linear-gradient(90deg,transparent 0 65px,#9f694558 65px 145px,transparent 145px 220px); opacity:0; }
-      .reveal-scene:before { top:60px; } .reveal-scene:after { top:110px; }
-      .reveal-scene:has(.run):before { animation:speed-line 1.9s .2s linear both; }
-      .reveal-scene:has(.run):after { animation:speed-line 2.1s .35s linear both; }
-      .passing-train { top:19px; left:-740px; width:720px; color:#39241c; filter:drop-shadow(0 14px 8px #5b392c55); }
-      .passing-train.run { animation:train-pass-book 2.3s cubic-bezier(.35,.04,.58,.98) forwards; }
-      .passing-train .wheel { transform-box:fill-box; transform-origin:center; stroke-dasharray:7 5; stroke-width:3; }
-      .passing-train.run .wheel { animation:wheel-turn .38s linear infinite; }
-      .passing-train.run .drive-rod { animation:rod-pulse .38s ease-in-out infinite alternate; }
-      .passing-train .steam { opacity:0; }
-      .passing-train.run .steam { animation:steam-rise 1.05s ease-out infinite; }
-      .passing-train.run .steam:nth-child(2) { animation-delay:.34s; }
-      .passing-train.run .steam:nth-child(3) { animation-delay:.68s; }
-      .passing-train.run .lamp-glow { animation:lamp-flicker .45s ease-in-out infinite alternate; }
-      .passing-train.run .window-light { animation:window-flicker 1.3s ease-in-out infinite alternate; }
-      .ticket { z-index:2; margin-top:150px; box-shadow:0 24px 46px #623e2d46; }
-      .ticket.arriving { animation:ticket-fly-book 1.15s cubic-bezier(.14,.83,.16,1) 2.12s both; }
-      .step[data-step="6"] .note,.step[data-step="6"] .button,.step[data-step="6"] #status { position:relative; z-index:2; }
-      @keyframes open-leaf { from { opacity:.25; transform:perspective(1500px) rotateY(-34deg) translateX(60px); } to { opacity:1; transform:none; } }
-      @keyframes train-pass-book { 0% { opacity:0; transform:translateX(0) scale(.82); } 7% { opacity:1; } 45% { transform:translateX(calc(50vw + 330px)) scale(.98); } 78% { opacity:1; } 100% { opacity:0; transform:translateX(calc(100vw + 850px)) scale(1.16); } }
-      @keyframes wheel-turn { to { transform:rotate(360deg); } }
-      @keyframes rod-pulse { to { transform:translateX(5px) translateY(-2px); } }
-      @keyframes steam-rise { 0% { opacity:0; transform:translate(0,10px) scale(.65); } 22% { opacity:.8; } 100% { opacity:0; transform:translate(-25px,-48px) scale(1.75); } }
-      @keyframes speed-line { 0%,100% { opacity:0; transform:translateX(0); } 20%,75% { opacity:.9; } 100% { transform:translateX(-25%); } }
-      @keyframes lamp-flicker { to { opacity:.45; transform:scale(1.28); transform-origin:682px 96px; } }
-      @keyframes window-flicker { to { opacity:.65; } }
-      @keyframes ticket-fly-book { 0% { opacity:0; transform:perspective(1100px) translate(0,135px) rotateX(38deg) scale(.18); filter:blur(14px); } 72% { opacity:1; transform:perspective(1100px) translateY(-9px) rotateX(-3deg) scale(1.04); filter:blur(0); } 100% { opacity:1; transform:none; filter:none; } }
-      @media (max-width:600px) { .shell { width:min(100% - 20px,980px); padding-top:12px; } .masthead { min-height:650px; border-left-width:11px; } .cover-frame { min-height:622px; padding:28px 18px 21px; } .cover-kicker { margin-top:57px; } .cover-art { height:198px; } .stage { min-height:650px; padding:30px 19px 49px; border-width:8px; border-left-width:13px; } .stage::after { right:18px; } .stage::before { opacity:.17; } .choices { grid-template-columns:1fr; } .choice { min-height:112px; } .step[data-step="6"] { min-height:760px; } .step[data-step="6"] .route { grid-template-columns:1fr; max-width:310px; gap:7px; margin-bottom:8px; font-size:.72rem; } .route span { min-height:52px; padding-top:17px; } .route span::before { top:3px; font-size:.48rem; } .route i { width:2px; height:10px; margin:auto; border:0; background:#a47c52; } .reveal-scene { top:116px; } .ticket { margin-top:75px; } .ticket-main { display:block; } .ticket-illustration { flex-direction:row; align-items:end; min-height:120px; padding:17px 16px; border-right:0; border-bottom:2px dashed #a9613e; } .ticket-illustration h3 { font-size:1.45rem; } .ticket-locomotive { width:105px; margin:0; } .ticket-body { padding:20px 18px 13px; } .ticket-title { font-size:1.8rem; } .ticket-value { font-size:.82rem; } .ticket-side { min-height:53px; padding:9px 14px; } .ticket-side-inner { display:flex; flex-wrap:wrap; gap:9px; writing-mode:horizontal-tb; transform:none; font-size:.65rem; } .ticket-side strong { font-size:.82rem; } .ticket-side small { font-size:.5rem; } }
-      @media (prefers-reduced-motion:reduce) { .book-open .stage,.step.current,.passing-train.run,.ticket.arriving,.reveal-scene:before,.reveal-scene:after,.passing-train .wheel,.passing-train .drive-rod,.passing-train .steam,.passing-train .lamp-glow,.passing-train .window-light { animation:none!important; transform:none!important; opacity:1!important; filter:none!important; } .passing-train.run { display:none; } }
-    </style>
-  </head>
-  <body>
-    <main class="shell">
-      <div class="rail" aria-hidden="true"><span class="active"></span><span></span><span></span><span></span><span></span><span></span></div>
-      <header class="masthead" id="book-cover">
-        <div class="cover-frame">
-          <p class="cover-edition">A little story for two · Passenger's edition</p>
-          <p class="cover-kicker">The beginning of</p>
-          <h1>The Date<br>Railway</h1>
-          <div class="cover-art" aria-hidden="true">
-            <div class="cover-sun"></div>
-            <svg viewBox="0 0 560 290" role="presentation"><path d="M10 238h540M40 251h480" fill="none" stroke="currentColor" stroke-width="4"/><path d="M89 189h261v50H89zM122 141h91v48h-91zM131 105h20v36h-20zM228 172h69v17h-69zM352 204h112v35H352zM359 169h91v35h-91zM466 216h31v23h-31z" fill="currentColor"/><path d="M141 154h51v26h-51zM372 179h26v18h-26zM410 179h26v18h-26z" fill="#d9ad77"/><path d="M102 211h237M369 220h78" stroke="#d9ad77" stroke-width="3"/><circle cx="140" cy="246" r="19" fill="currentColor"/><circle cx="210" cy="246" r="19" fill="currentColor"/><circle cx="307" cy="246" r="19" fill="currentColor"/><circle cx="388" cy="246" r="15" fill="currentColor"/><circle cx="443" cy="246" r="15" fill="currentColor"/><path d="M141 86c-16-15 17-26 3-43M165 81c-12-16 13-21 4-39M187 77c-12-12 9-19 3-33" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity=".45"/></svg>
-          </div>
-          <p class="cover-copy">A day to choose. A journey to make. A ticket just for us.</p>
-          <button class="cover-open" id="open-book">Open our story <span aria-hidden="true">→</span></button>
-          <p class="cover-foot">Volume 01 · The weekend edition</p>
-        </div>
-      </header>
-      <section class="stage" aria-live="polite">
-        <section class="step current" data-step="1">
-          <p class="eyebrow">first stop · pick a day</p><h2>Which day feels right?</h2><p class="lead">Choose the departure that works best for you. We’ll plan the rest together.</p>
-          <div class="choices">
-            <button class="choice" data-date="Saturday" data-ics="20260926"><span class="badge">TICKET A</span><strong>The Saturday Express</strong><small>Saturday</small><small>Choose a day, then choose our adventure</small></button>
-            <button class="choice" data-date="Sunday" data-ics="20260927"><span class="badge">TICKET B</span><strong>The Sunday Line</strong><small>Sunday</small><small>Choose a day, then choose our adventure</small></button>
-          </div>
-        </section>
-        <section class="step" data-step="2">
-          <p class="eyebrow">second stop · choose the setting</p><h2>Should we go out or stay home?</h2><p class="lead">Choose the kind of day you’re feeling, then we’ll show the matching routes.</p>
-          <div class="choices">
-            <button class="choice" data-setting="out"><span class="badge">OUT</span><strong>Go out</strong><small>Make an adventure of the day</small></button>
-            <button class="choice" data-setting="home"><span class="badge">HOME</span><strong>Stay home</strong><small>Keep it slow and cozy together</small></button>
-          </div>
-        </section>
-        <section class="step" data-step="3">
-          <p class="eyebrow">third stop · choose a route</p><h2>Where should our day take us?</h2><p class="lead">Pick one complete adventure. We’ll make a ticket from there.</p>
-          <div class="choices">
-            <button class="choice" data-route-setting="out" data-route="Finish our tufting" data-itinerary="Café lunch → tufting at 2 → a stroll through a nicer mall → simple dinner"><span class="badge">MAKE</span><strong>Finish our tufting</strong><small>Lunch, tufting at 2, mall stroll, and a simple dinner</small></button>
-            <button class="choice" data-route-setting="out" data-route="Explore something new" data-itinerary="Café lunch → Activity choice → mall stroll → simple dinner" data-pick-activity="true"><span class="badge">PLAY</span><strong>Explore something new</strong><small>Try a new activity, stroll the mall, then have a simple dinner</small></button>
-            <button class="choice" data-route-setting="home" data-route="A slow day in" data-itinerary="Lunch choice → keep watching shows → rest together → family dinner → go home"><span class="badge">HOME</span><strong>A slow day in</strong><small>Shows, rest, family dinner, and nowhere else to be</small></button>
-            <button class="choice" data-route-setting="home" data-route="A creative home day" data-itinerary="Lunch choice → make something together → rest together → family dinner → go home"><span class="badge">COZY</span><strong>A creative home day</strong><small>Make, rest, family dinner, and a cozy night in</small></button>
-          </div>
-        </section>
-        <section class="step" data-step="4">
-          <p class="eyebrow">fourth stop · pick an activity</p><h2>What should we try?</h2><p class="lead">Choose our new little challenge before the mall stroll.</p>
-          <div class="choices">
-            <button class="choice" data-activity="拼豆"><span class="badge">MAKE</span><strong>拼豆</strong><small>Make something small and colourful together</small></button>
-            <button class="choice" data-activity="Rock climbing"><span class="badge">CLIMB</span><strong>Rock climbing</strong><small>Try a playful challenge side by side</small></button>
-            <button class="choice" data-activity="Pottery"><span class="badge">SHAPE</span><strong>Pottery</strong><small>Get messy and make something together</small></button>
-            <button class="choice" id="suggest-activity"><span class="badge">YOURS</span><strong>Suggest an activity</strong><small>Got another idea? Add it to our route.</small></button>
-            <form class="suggestion hidden" id="activity-form"><label for="activity-input">What should we try?</label><input id="activity-input" maxlength="60" required placeholder="e.g. an escape room" /><button class="button" type="submit">Use this idea</button></form>
-          </div>
-        </section>
-        <section class="step" data-step="5">
-          <p class="eyebrow" id="picker-eyebrow">third stop · pick the café</p><h2 id="picker-title">Which café should we go to?</h2><p class="lead" id="picker-lead">You get to choose our first delicious stop.</p>
-          <div class="choices">
-            <button class="choice" data-picker-choice><span class="badge">FAMILIAR</span><strong>Your favourite café</strong><small>A comfortable classic with your usual order</small></button>
-            <button class="choice" data-picker-choice><span class="badge">NEW</span><strong>A new café to try</strong><small>Find a fresh little place together</small></button>
-          </div>
-        </section>
-        <section class="step center" data-step="6">
-          <p class="eyebrow">your ticket is ready</p><h2>Destination selected.</h2><div class="route" aria-label="Selected route"><span id="route-date" data-label="Departure"></span><i aria-hidden="true"></i><span id="route-idea" data-label="Destination"></span><i aria-hidden="true"></i><span data-label="Status">All aboard</span></div>
-          <div class="reveal-scene" aria-hidden="true"><div class="rail-line"></div><div class="passing-train" id="passing-train">
-            <svg viewBox="0 0 720 190" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="boiler" x2="0" y2="1"><stop stop-color="#72513a"/><stop offset=".46" stop-color="#36251f"/><stop offset="1" stop-color="#211b18"/></linearGradient><linearGradient id="carriage" x2="0" y2="1"><stop stop-color="#9b6345"/><stop offset=".58" stop-color="#58392d"/><stop offset="1" stop-color="#342822"/></linearGradient><radialGradient id="lamp"><stop stop-color="#fff2b1" stop-opacity=".9"/><stop offset="1" stop-color="#f4c064" stop-opacity="0"/></radialGradient></defs>
-              <g fill="#b2a292" class="steam"><circle cx="517" cy="24" r="12"/><circle cx="504" cy="17" r="9"/></g><g fill="#b2a292" class="steam"><circle cx="536" cy="22" r="10"/><circle cx="546" cy="16" r="7"/></g><g fill="#b2a292" class="steam"><circle cx="521" cy="13" r="8"/><circle cx="530" cy="8" r="6"/></g>
-              <ellipse cx="370" cy="168" rx="333" ry="9" fill="#3f3026" opacity=".28"/>
-              <g stroke="#281e1a" stroke-width="2" stroke-linejoin="round">
-                <path d="M18 128V64h170v64z" fill="url(#carriage)"/><path d="M13 60h180l-9-12H23z" fill="#35251f"/><path d="M26 70h156v46H26z" fill="#6a4230"/><path d="M24 117h162v11H24z" fill="#251f1b"/><path d="M40 76h32v31H40zm45 0h32v31H85zm45 0h32v31h-32z" class="window-light" fill="#edc58d"/><path d="M78 76v31m45-31v31M16 57h174M24 133h169" fill="none" stroke="#c99662" stroke-width="3"/><path d="M36 68h143M34 113h146" fill="none" stroke="#cc9b68" stroke-width="1.5"/>
-                <path d="M194 128V76h111v52z" fill="#412d25"/><path d="M201 75h103l-12-17h-81z" fill="#6d4731"/><path d="M211 83h73v31h-73z" fill="#8f5a38"/><path d="M198 119h107v10H198z" fill="#241e1a"/><path d="M216 87h62m-62 7h62m-62 7h62m-62 7h62" stroke="#b37b4b" stroke-width="1.4"/>
-                <path d="M309 123V72h44l19 16v35z" fill="#372923"/><path d="M315 70h39l17 16h-56z" fill="#754830"/><path d="M321 79h28v23h-28z" class="window-light" fill="#eac182"/><path d="M356 87h11v24h-11z" fill="#2a201c"/>
-                <path d="M367 103h30V72h200v54H367z" fill="url(#boiler)"/><path d="M394 73c43-8 139-8 198 0" fill="none" stroke="#bb8a57" stroke-width="5"/><path d="M400 121h192" fill="none" stroke="#a26943" stroke-width="5"/><path d="M415 77v39m31-43v45m33-47v49m34-49v49m33-48v47m31-43v41" fill="none" stroke="#7c5c44" stroke-width="2"/><path d="M395 69h190v-9H395z" fill="#231d1a"/><path d="M497 61V38h27v23zM491 38h39l-7-10h-25z" fill="#32231e"/><path d="M420 62V49h22v13zM412 48h38v-6h-38z" fill="#5d3c2b"/><path d="M581 70h31l23 32v24h-54z" fill="#352720"/><path d="M612 80l27 20h25v26h-31z" fill="#211d1a"/><path d="M635 102h46v25h-46z" fill="#643f2d"/><path d="M677 108h15v20h-15z" fill="#2c221e"/><path d="M589 69h18v56h-18z" fill="#a47a50"/><path d="M592 75h12m-12 12h12m-12 12h12m-12 12h12" stroke="#533924" stroke-width="2"/>
-                <path d="M12 128h684v9H12z" fill="#27201b"/><path d="M20 137h677v6H20z" fill="#bb8654"/><path d="M17 143h682v4H17z" fill="#3b2921"/>
-              </g>
-              <g fill="#d4a268" stroke="#39271d" stroke-width="2"><circle cx="55" cy="151" r="16" class="wheel"/><circle cx="142" cy="151" r="16" class="wheel"/><circle cx="225" cy="151" r="14" class="wheel"/><circle cx="281" cy="151" r="14" class="wheel"/><circle cx="372" cy="151" r="17" class="wheel"/><circle cx="432" cy="151" r="22" class="wheel"/><circle cx="503" cy="151" r="22" class="wheel"/><circle cx="565" cy="151" r="22" class="wheel"/><circle cx="651" cy="151" r="15" class="wheel"/></g>
-              <g stroke="#3b281d" stroke-width="2" fill="none"><path d="M55 137v28m-14-14h28m73-14v28m-14-14h28m76-10v20m-10-10h20m46-10v20m-10-10h20m81-12v24m-12-12h24m60-17v34m-17-17h34m54-22v44m-22-22h44m49-22v44m-22-22h44m86-15v30m-15-15h30"/></g>
-              <g fill="#38261e"><circle cx="55" cy="151" r="5"/><circle cx="142" cy="151" r="5"/><circle cx="225" cy="151" r="4"/><circle cx="281" cy="151" r="4"/><circle cx="372" cy="151" r="5"/><circle cx="432" cy="151" r="6"/><circle cx="503" cy="151" r="6"/><circle cx="565" cy="151" r="6"/><circle cx="651" cy="151" r="4"/></g>
-              <path class="drive-rod" d="M430 154h138" fill="none" stroke="#e1b47c" stroke-width="5" stroke-linecap="round"/><path d="M395 132h185" fill="none" stroke="#d6aa77" stroke-width="3"/><g fill="#d5a776"><circle cx="420" cy="86" r="2"/><circle cx="456" cy="81" r="2"/><circle cx="486" cy="80" r="2"/><circle cx="518" cy="80" r="2"/><circle cx="550" cy="83" r="2"/><circle cx="576" cy="87" r="2"/></g>
-              <circle class="lamp-glow" cx="681" cy="96" r="27" fill="url(#lamp)"/><circle cx="681" cy="96" r="6" fill="#ffe3a4" stroke="#503322" stroke-width="2"/>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183e32">
+  <meta name="description" content="A little railway story, a day to choose, and a ticket just for us.">
+  <title>The Date Railway · Our next little adventure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="planner.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="scene">
+    <div class="ambient-grain" aria-hidden="true"></div>
+    <div class="book" id="book">
+      <div class="paper-edge" aria-hidden="true"></div>
+      <div class="spread" id="spread" inert>
+        <aside class="left-page" aria-label="Your route so far">
+          <div class="book-colophon"><span>The Date Railway</span><span>Volume 01 / 2026</span></div>
+          <div class="illustration" aria-hidden="true">
+            <div class="illustration-sun"></div>
+            <svg viewBox="0 0 510 275" role="presentation">
+              <path d="M0 216 Q75 169 162 201 T328 196 T510 210 V275 H0Z" fill="#c9b98e"/>
+              <path d="M0 237 Q95 185 190 223 T360 210 T510 228 V275 H0Z" fill="#a8b39b"/>
+              <path d="M0 253 Q100 221 225 240 T510 244 V275 H0Z" fill="#6a8a73"/>
+              <path d="M0 237H510 M0 245H510" stroke="#715542" stroke-width="3"/>
+              <path d="M30 237v8m60-8v8m60-8v8m60-8v8m60-8v8m60-8v8m60-8v8m60-8v8" stroke="#715542" stroke-width="4"/>
+              <path d="M55 222V133l22-15 22 15v89m-35-64h26m-26 26h26M384 218v-53l27-20 27 20v53m-42-41h29" fill="none" stroke="#274a3b" stroke-width="7" stroke-linejoin="round"/>
+              <path d="M45 223h68m261-5h77" stroke="#274a3b" stroke-width="9"/>
             </svg>
-          </div></div>
-          <article class="ticket" id="final-ticket" aria-label="Your date ticket"><div class="ticket-main"><div class="ticket-illustration"><div><p class="ticket-brand">Date night railway</p><h3>STATION<br>DATE NIGHT</h3></div><svg class="ticket-locomotive" viewBox="0 0 230 95" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g fill="#42271b" stroke="#42271b" stroke-linejoin="round"><path d="M5 69h218v7H5zM18 44h53v25H18zM17 40h57l-5-5H22zM74 52h27v17H74zM101 29h27v40h-27zM98 25h32v5H98zM131 48h63v21h-63zM133 43h60v6h-60zM161 33h11v11h-11zM158 30h17v4h-17zM195 48h17l9 15v6h-26zM211 54h14v15h-14z"/><path d="M12 77h214" fill="none" stroke-width="2"/><path d="M23 49h39v13H23zM106 35h17v19h-17z" fill="#e8b683"/><path d="M142 52h43m-43 5h43m-43 5h43M31 66h34" fill="none" stroke="#bd8454" stroke-width="1.5"/><circle cx="38" cy="80" r="10"/><circle cx="82" cy="80" r="9"/><circle cx="116" cy="80" r="11"/><circle cx="157" cy="80" r="12"/><circle cx="190" cy="80" r="12"/><circle cx="216" cy="80" r="8"/></g><g fill="none" stroke="#dda974" stroke-width="1.6"><circle cx="38" cy="80" r="6"/><circle cx="82" cy="80" r="5"/><circle cx="116" cy="80" r="7"/><circle cx="157" cy="80" r="8"/><circle cx="190" cy="80" r="8"/><circle cx="216" cy="80" r="4"/><path d="M153 80h39"/></g><g fill="#42271b"><circle cx="38" cy="80" r="2"/><circle cx="82" cy="80" r="2"/><circle cx="116" cy="80" r="2"/><circle cx="157" cy="80" r="2"/><circle cx="190" cy="80" r="2"/><circle cx="216" cy="80" r="2"/></g><circle cx="220" cy="55" r="3" fill="#fff0b7"/></svg></div><div class="ticket-body"><p class="ticket-label">Boarding pass</p><p class="ticket-title">Our next little adventure</p><p class="ticket-label">Departure</p><p class="ticket-value" id="ticket-date"></p><p class="ticket-label">Plan</p><p class="ticket-value" id="ticket-idea"></p><p class="ticket-label" id="ticket-food-label">Café</p><p class="ticket-value" id="ticket-cafe"></p><p class="ticket-label">Itinerary</p><p class="ticket-value" id="ticket-itinerary"></p></div><div class="ticket-side"><div class="ticket-side-inner"><strong>CONTROL</strong><small>YOU + ME · SEAT NEXT TO ME</small><small>VALID FOR A LOVELY TIME</small></div></div></div></article>
-          <p class="note">I’m really looking forward to spending this time with you. See you at the station.</p>
-          <button class="button" id="calendar">Add our date to calendar</button><br><button class="button secondary" id="restart">Plan another route</button><p id="status" class="hidden" role="status"></p>
-        </section>
-      </section>
-    </main>
-    <script>
-      const plan = { date:"", setting:"", idea:"", itinerary:"", activity:"", food:"", foodLabel:"", ics:"" };
-      const steps = [...document.querySelectorAll(".step")], rails = [...document.querySelectorAll(".rail span")];
-      function show(n) { const page=document.body.classList.contains("short-route") && n>4 ? n-1 : n, total=document.body.classList.contains("short-route") ? 5 : 6; steps.forEach(x => x.classList.toggle("current", +x.dataset.step === n)); rails.forEach((x,i) => x.classList.toggle("active", i < page)); document.querySelector(".stage").dataset.page=`PAGE ${page} / ${total}`; const heading=document.querySelector(`.step[data-step="${n}"] h2`); heading.setAttribute("tabindex","-1"); heading.focus({preventScroll:true}); }
-      document.getElementById("open-book").onclick=()=>{ document.body.classList.add("book-open"); show(1); };
-      document.querySelectorAll("[data-date]").forEach(b => b.onclick = () => { plan.date=b.dataset.date; plan.ics=b.dataset.ics; show(2); });
-      const picker = [...document.querySelectorAll("[data-picker-choice]")];
-      function configurePicker(home, afterActivity=false) { const stop=afterActivity ? "fifth" : "fourth"; const copy = home ? [`${stop} stop · lunch plans`,"How should we do lunch?","Pick a little outing or keep it easy at home.",["OUT","Eat out for lunch","Find somewhere nice before returning home"],["DELIVERY","Get lunch delivered","Stay in, get comfortable, and take it slow"]] : [`${stop} stop · pick the café`,"Which café should we go to?","You get to choose our first delicious stop.",["FAMILIAR","Your favourite café","A comfortable classic with your usual order"],["NEW","A new café to try","Find a fresh little place together"]]; ["picker-eyebrow","picker-title","picker-lead"].forEach((id,i)=>document.getElementById(id).textContent=copy[i]); picker.forEach((button,i)=>{ const [badge,title,detail]=copy[i+3]; button.dataset.value=title; button.innerHTML=`<span class="badge">${badge}</span><strong>${title}</strong><small>${detail}</small>`; }); plan.foodLabel=home ? "Lunch" : "Café"; }
-      function renderTicket() { ["route-date","ticket-date"].forEach(id=>document.getElementById(id).textContent=plan.date); ["route-idea","ticket-idea"].forEach(id=>document.getElementById(id).textContent=plan.idea); document.getElementById("ticket-food-label").textContent=plan.foodLabel; document.getElementById("ticket-cafe").textContent=plan.food; document.getElementById("ticket-itinerary").textContent=plan.itinerary.replace("Lunch choice",plan.food); show(6); const ticket=document.getElementById("final-ticket"), train=document.getElementById("passing-train"); ticket.classList.remove("arriving"); train.classList.remove("run"); void ticket.offsetWidth; ticket.classList.add("arriving"); train.classList.add("run"); }
-      document.querySelectorAll("[data-setting]").forEach(b => b.onclick = () => { plan.setting=b.dataset.setting; document.querySelectorAll("[data-route-setting]").forEach(route=>route.classList.toggle("hidden",route.dataset.routeSetting!==plan.setting)); show(3); });
-      document.querySelectorAll("[data-route]").forEach(b => b.onclick = () => { plan.idea=b.dataset.route; plan.itinerary=b.dataset.itinerary; document.body.classList.toggle("short-route",!b.dataset.pickActivity); if (b.dataset.pickActivity) { activityForm.classList.add("hidden"); activityInput.value=""; return show(4); } configurePicker(plan.setting==="home"); show(5); });
-      document.querySelectorAll("[data-activity]").forEach(b => b.onclick = () => { plan.activity=b.dataset.activity; plan.itinerary=plan.itinerary.replace("Activity choice",plan.activity); configurePicker(false,true); show(5); });
-      const activityForm=document.getElementById("activity-form"), activityInput=document.getElementById("activity-input");
-      document.getElementById("suggest-activity").onclick=()=>{ activityForm.classList.remove("hidden"); activityInput.focus(); };
-      activityForm.onsubmit=e=>{ e.preventDefault(); plan.activity=activityInput.value.trim(); if (!plan.activity) return; plan.itinerary=plan.itinerary.replace("Activity choice",plan.activity); configurePicker(false,true); show(5); };
-      picker.forEach(b => b.onclick = () => { plan.food=b.dataset.value; renderTicket(); });
-      document.getElementById("restart").onclick = () => { Object.assign(plan,{date:"",setting:"",idea:"",itinerary:"",activity:"",food:"",foodLabel:"",ics:""}); document.body.classList.remove("short-route"); show(1); };
-      document.getElementById("calendar").onclick = () => { const start=plan.ics, next=new Date(Date.UTC(+start.slice(0,4),+start.slice(4,6)-1,+start.slice(6,8)+1)).toISOString().slice(0,10).replaceAll("-",""); const event=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${start}\nDTEND;VALUE=DATE:${next}\nSUMMARY:Our next little adventure\nDESCRIPTION:${plan.idea}; ${plan.foodLabel}: ${plan.food}. ${plan.itinerary.replace("Lunch choice",plan.food)}.\nEND:VEVENT\nEND:VCALENDAR`; const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([event],{type:"text/calendar"})),download:"our-date.ics"}); a.click(); URL.revokeObjectURL(a.href); const status=document.getElementById("status"); status.textContent="Your calendar file is ready to add."; status.classList.remove("hidden"); };
-    </script>
-  </body>
+            <p class="illustration-caption">Every good journey begins with one small yes.</p>
+          </div>
+          <div class="route-card">
+            <div class="route-card-title"><span class="route-card-icon" aria-hidden="true"></span><h2>Our route so far</h2></div>
+            <ol class="route-list" id="route-list"></ol>
+          </div>
+          <p class="left-foot">Two passengers · One little adventure</p>
+        </aside>
+
+        <div class="right-page" id="right-page">
+          <nav class="stops" id="stops" aria-label="Journey stops"></nav>
+          <details class="mobile-route-summary">
+            <summary><span>OUR ROUTE</span><strong id="mobile-summary-text">Choose a day to begin</strong></summary>
+            <ol id="mobile-route-list"></ol>
+          </details>
+          <div class="page-body" id="page-body">
+            <section class="step" data-step="date" aria-labelledby="date-heading">
+              <p class="chapter">The departure</p>
+              <h2 id="date-heading" tabindex="-1">Which day feels right?</h2>
+              <p class="lead">Pick the day we will spend together. The ticket will remember your choice.</p>
+              <div class="choices" role="group" aria-label="Choose a day">
+                <button class="choice" type="button" data-choice="date" data-value="2026-10-03" aria-pressed="false"><span class="choice-index">01 / Saturday</span><strong>The Saturday Express</strong><span class="choice-detail">October 3, 2026 · a whole day ahead</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="date" data-value="2026-10-04" aria-pressed="false"><span class="choice-index">02 / Sunday</span><strong>The Sunday Line</strong><span class="choice-detail">October 4, 2026 · take it slowly</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+              </div>
+              <p class="field-message" id="date-message" role="status"></p>
+            </section>
+
+            <section class="step" data-step="setting" aria-labelledby="setting-heading" hidden>
+              <p class="chapter">The mood</p>
+              <h2 id="setting-heading" tabindex="-1">Out in the world, or cozy at home?</h2>
+              <p class="lead">There is no wrong route. What kind of day would make you happiest?</p>
+              <div class="choices" role="group" aria-label="Choose the setting">
+                <button class="choice" type="button" data-choice="setting" data-value="out" aria-pressed="false"><span class="choice-index">A / Adventure</span><strong>Go out together</strong><span class="choice-detail">A café, a little exploring, and dinner.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="setting" data-value="home" aria-pressed="false"><span class="choice-index">B / Slow day</span><strong>Stay in together</strong><span class="choice-detail">Lunch, comfy clothes, and all the time we need.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+              </div>
+            </section>
+
+            <section class="step" data-step="route" aria-labelledby="route-heading" hidden>
+              <p class="chapter">The route</p>
+              <h2 id="route-heading" tabindex="-1">Where should the day take us?</h2>
+              <p class="lead">Choose the shape of our day. We can still change it later.</p>
+              <div class="choices" role="group" aria-label="Choose a route">
+                <button class="choice" type="button" data-choice="route" data-value="tufting" data-for="out" aria-pressed="false"><span class="choice-index">Route 01 / Make</span><strong>Finish our tufting</strong><span class="choice-detail">Lunch, tufting at two, a mall stroll, and dinner.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="route" data-value="explore" data-for="out" aria-pressed="false"><span class="choice-index">Route 02 / Explore</span><strong>Try something new</strong><span class="choice-detail">You choose an activity; I will be there beside you.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="route" data-value="slow" data-for="home" aria-pressed="false"><span class="choice-index">Route 01 / Rest</span><strong>A slow day in</strong><span class="choice-detail">Shows, rest, family dinner, and nowhere else to be.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="route" data-value="creative" data-for="home" aria-pressed="false"><span class="choice-index">Route 02 / Create</span><strong>A creative home day</strong><span class="choice-detail">Make something together, then settle in.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+              </div>
+            </section>
+
+            <section class="step" data-step="activity" aria-labelledby="activity-heading" hidden>
+              <p class="chapter">The little detour</p>
+              <h2 id="activity-heading" tabindex="-1">What should we try?</h2>
+              <p class="lead">A new memory, made by both of us.</p>
+              <div class="choices choice-grid" role="group" aria-label="Choose an activity">
+                <button class="choice" type="button" data-choice="activity" data-value="Bead art" aria-pressed="false"><span class="choice-index">Make</span><strong>Bead art</strong><span class="choice-detail">Something small and colourful.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="activity" data-value="Rock climbing" aria-pressed="false"><span class="choice-index">Climb</span><strong>Rock climbing</strong><span class="choice-detail">A challenge side by side.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="activity" data-value="Pottery" aria-pressed="false"><span class="choice-index">Shape</span><strong>Pottery</strong><span class="choice-detail">Get a little messy together.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" id="custom-choice" aria-pressed="false"><span class="choice-index">Your idea</span><strong>Something else</strong><span class="choice-detail">Write your own detour.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+              </div>
+              <form class="custom-form" id="custom-form" hidden><label for="custom-activity">Your activity</label><div class="custom-input-row"><input id="custom-activity" maxlength="60" autocomplete="off" placeholder="e.g. an escape room" required><button class="small-action" type="submit">Use this idea</button></div></form>
+            </section>
+
+            <section class="step" data-step="food" aria-labelledby="food-heading" hidden>
+              <p class="chapter">A delicious stop</p>
+              <h2 id="food-heading" tabindex="-1">Where should lunch be?</h2>
+              <p class="lead" id="food-lead">Pick our first delicious stop.</p>
+              <div class="choices" role="group" aria-label="Choose lunch">
+                <button class="choice" type="button" data-choice="food" data-value="favorite" data-for="out" aria-pressed="false"><span class="choice-index">A familiar stop</span><strong>Your favourite café</strong><span class="choice-detail">Your usual order, with me across the table.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="food" data-value="new" data-for="out" aria-pressed="false"><span class="choice-index">A new stop</span><strong>A new café to try</strong><span class="choice-detail">Somewhere we can discover together.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="food" data-value="eatout" data-for="home" aria-pressed="false"><span class="choice-index">Before we head home</span><strong>Eat out for lunch</strong><span class="choice-detail">A small outing before our cozy afternoon.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+                <button class="choice" type="button" data-choice="food" data-value="delivery" data-for="home" aria-pressed="false"><span class="choice-index">Stay in</span><strong>Get lunch delivered</strong><span class="choice-detail">Settle in and take our time.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
+              </div>
+            </section>
+
+            <section class="step final-step" data-step="ticket" aria-labelledby="ticket-heading" hidden>
+              <h2 id="ticket-heading" tabindex="-1">It’s a date.</h2>
+              <p class="final-lead">One little journey, made just for us.</p>
+              <div class="train-scene" id="train-scene" aria-hidden="true">
+                <div class="station-sign">DATE NIGHT <span>STATION</span></div>
+                <div class="platform-slot"><span>YOUR TICKET</span></div>
+                <div class="track"></div>
+                <svg class="train" id="train" viewBox="0 0 300 130" role="presentation">
+                  <defs><linearGradient id="engine-paint" x2="0" y2="1"><stop stop-color="#36654d"/><stop offset="1" stop-color="#173d32"/></linearGradient></defs>
+                  <path d="M26 93h252v10H26z" fill="#302d29"/>
+                  <path d="M29 45h67v48H29zM42 27h44v18H42z" fill="#9a4e37" stroke="#4f3026" stroke-width="3"/>
+                  <path d="M103 42h110v51H103zM212 56h28l19 37h-47z" fill="url(#engine-paint)" stroke="#18372e" stroke-width="3"/>
+                  <path d="M112 35h91v10h-91z" fill="#c9965d"/>
+                  <path d="M165 38V18h21v20z" fill="#302d29"/>
+                  <path d="M155 17h42v7h-42z" fill="#302d29"/>
+                  <path d="M124 58h29v22h-29zM166 58h29v22h-29z" fill="#eacb8a"/>
+                  <path d="M46 57h31v22H46z" fill="#eacb8a"/>
+                  <path d="M104 83h108" stroke="#d1ac75" stroke-width="4"/>
+                  <path d="M236 77h21v14h-21z" fill="#c9965d"/>
+                  <path d="M257 83h16v10h-16z" fill="#574030"/>
+                  <path d="M36 100h238" stroke="#bd8f62" stroke-width="4"/>
+                  <g class="wheel" data-wheel="65"><circle cx="65" cy="96" r="15"/><path d="M65 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
+                  <g class="wheel" data-wheel="130"><circle cx="130" cy="96" r="15"/><path d="M130 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
+                  <g class="wheel" data-wheel="208"><circle cx="208" cy="96" r="15"/><path d="M208 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
+                  <g class="wheel" data-wheel="265"><circle cx="265" cy="96" r="15"/><path d="M265 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
+                  <line class="drive-rod" id="drive-rod" x1="136" y1="96" x2="214" y2="96"/>
+                  <circle cx="272" cy="68" r="5" fill="#f8d793"/>
+                </svg>
+              </div>
+              <article class="ticket" id="ticket" aria-label="Our date ticket">
+                <div class="ticket-top"><div><span class="ticket-kicker">The Date Railway</span><h3>Our next little adventure</h3></div><span class="ticket-seal" aria-hidden="true">01<br>PASS</span></div>
+                <div class="ticket-fields">
+                  <div class="ticket-field"><span>Departure</span><strong id="ticket-date"></strong><button type="button" data-edit="date" aria-label="Edit date">Edit</button></div>
+                  <div class="ticket-field"><span>Setting</span><strong id="ticket-setting"></strong><button type="button" data-edit="setting" aria-label="Edit setting">Edit</button></div>
+                  <div class="ticket-field"><span>Route</span><strong id="ticket-route"></strong><button type="button" data-edit="route" aria-label="Edit route">Edit</button></div>
+                  <div class="ticket-field" id="ticket-activity-field"><span>Activity</span><strong id="ticket-activity"></strong><button type="button" data-edit="activity" aria-label="Edit activity">Edit</button></div>
+                  <div class="ticket-field"><span>Lunch</span><strong id="ticket-food"></strong><button type="button" data-edit="food" aria-label="Edit lunch">Edit</button></div>
+                  <div class="ticket-field ticket-wide"><span>The plan</span><strong id="ticket-itinerary"></strong></div>
+                </div>
+                <div class="ticket-perforation" aria-hidden="true"></div>
+                <div class="ticket-foot"><span>YOU + ME</span><span>SEAT NEXT TO ME</span></div>
+              </article>
+              <div class="final-actions"><button class="primary-action" type="button" id="calendar">Add to calendar</button><button class="quiet-action" type="button" id="skip">Skip animation</button><button class="quiet-action" type="button" id="replay">Replay arrival</button></div>
+              <p class="feedback" id="status" role="status" aria-live="polite"></p>
+            </section>
+          </div>
+          <div class="page-controls" id="page-controls"><button class="back-action" type="button" id="back">Previous page</button><span class="page-number" id="page-number"></span><button class="primary-action" type="button" id="continue" disabled>Continue <span aria-hidden="true">→</span></button></div>
+        </div>
+      </div>
+
+      <div class="book-cover" id="book-cover">
+        <div class="cover-face cover-front">
+          <div class="cover-border">
+            <p class="cover-edition">A story for two <span>·</span> Passenger’s edition</p>
+            <div class="cover-title"><p>The beginning of</p><h1>The Date<br>Railway</h1></div>
+            <div class="cover-art" aria-hidden="true"><div class="cover-sun"></div><svg viewBox="0 0 560 290" role="presentation"><path d="M10 238h540M40 251h480" fill="none" stroke="currentColor" stroke-width="4"/><path d="M89 189h261v50H89zM122 141h91v48h-91zM131 105h20v36h-20zM228 172h69v17h-69zM352 204h112v35H352zM359 169h91v35h-91zM466 216h31v23h-31z" fill="currentColor"/><path d="M141 154h51v26h-51zM372 179h26v18h-26zM410 179h26v18h-26z" fill="#d9ad77"/><path d="M102 211h237M369 220h78" stroke="#d9ad77" stroke-width="3"/><circle cx="140" cy="246" r="19" fill="currentColor"/><circle cx="210" cy="246" r="19" fill="currentColor"/><circle cx="307" cy="246" r="19" fill="currentColor"/><circle cx="388" cy="246" r="15" fill="currentColor"/><circle cx="443" cy="246" r="15" fill="currentColor"/><path d="M141 86c-16-15 17-26 3-43M165 81c-12-16 13-21 4-39M187 77c-12-12 9-19 3-33" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity=".45"/></svg></div>
+            <p class="cover-copy">A day to choose. A journey to make. A ticket just for us.</p>
+            <button class="open-action" type="button" id="open-book">Open our story <span aria-hidden="true">↗</span></button>
+            <p class="cover-foot">Volume 01 <span>·</span> The weekend edition</p>
+          </div>
+        </div>
+        <div class="cover-face cover-back" aria-hidden="true"><div class="cover-back-rule"></div><span>The Date Railway</span></div>
+      </div>
+    </div>
+  </main>
+</body>
 </html>
