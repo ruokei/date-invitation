@@ -1,36 +1,52 @@
 (() => {
   'use strict';
   const P = window.DateRailwayPlanner;
-  const E = window.DateRailwayEmail;
-  const book = document.querySelector('#book');
-  const cover = document.querySelector('#book-cover');
-  const spread = document.querySelector('#spread');
-  const pageBody = document.querySelector('#page-body');
-  const controls = document.querySelector('#page-controls');
-  const continueButton = document.querySelector('#continue');
-  const backButton = document.querySelector('#back');
-  const stops = document.querySelector('#stops');
-  const finalStep = document.querySelector('[data-step="ticket"]');
-  const trainScene = document.querySelector('#train-scene');
-  const train = document.querySelector('#train');
-  const wheels = [...train.querySelectorAll('[data-wheel]')];
-  const rod = document.querySelector('#drive-rod');
-  const ticket = document.querySelector('#ticket');
+  const E = window.MidnightEmail;
+  const A = window.MidnightArtwork;
+  const stage = document.querySelector('#stage');
+  const planner = document.querySelector('#planner');
+  const steps = document.querySelector('#steps');
   const status = document.querySelector('#status');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const forceMotion = new URLSearchParams(window.location.search).get('motion') === 'full';
-  if (forceMotion) document.documentElement.classList.add('motion-full');
-  const motionReduced = () => reducedMotion.matches && !forceMotion;
-  document.querySelector('#motion-link').hidden = !motionReduced();
-  const stopNames = { date: 'Day', setting: 'Mood', route: 'Route', activity: 'Activity', food: 'Lunch', time: 'Time', ticket: 'Ticket' };
+  const dialog = document.querySelector('#email-dialog');
+  const motionButton = document.querySelector('#motion-toggle');
+  const stepNames = { date: 'Day', setting: 'Together', route: 'Plans', activity: 'Activity', food: 'Lunch', time: 'Time', ticket: 'Invitation' };
+  const sceneWords = { date: 'The night is ours to choose.', setting: 'Where will our day unfold?', route: 'Every little path leads to us.', activity: 'Something new, together.', food: 'The little things make the day.', time: 'A little time, just for us.', ticket: 'Our little universe, written in the stars.' };
   const presetActivities = ['Bead art', 'Rock climbing', 'Pottery'];
   let plan = P.createPlan();
   let current = 'date';
   let opened = false;
-  let turnTimer = 0;
-  let finaleFrame = 0;
-  let deliveryTimer = 0;
-  let lastSteam = 0;
+  let sceneTimer = 0;
+  let artworkUrl = '';
+  let sendAvailable = false;
+
+  const params = new URLSearchParams(location.search);
+  const storedMotion = (() => { try { return localStorage.getItem('observatory-motion'); } catch { return null; } })();
+  const queryMotion = params.get('motion');
+  let fullMotion = queryMotion === 'reduce' ? false : queryMotion === 'full' ? true : storedMotion ? storedMotion !== 'reduced' : !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function setMotion(value) {
+    fullMotion = value;
+    document.documentElement.dataset.motion = value ? 'full' : 'reduced';
+    motionButton.textContent = value ? 'Motion on' : 'Motion off';
+    motionButton.setAttribute('aria-pressed', String(value));
+    try { localStorage.setItem('observatory-motion', value ? 'full' : 'reduced'); } catch {}
+    if (!value) finishScene();
+  }
+  setMotion(fullMotion);
+  motionButton.addEventListener('click', () => setMotion(!fullMotion));
+
+  let seed = 8924;
+  function random() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  const stars = document.querySelector('#stars');
+  const starCount = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 ? 52 : 78;
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('span');
+    star.style.left = `${Math.round(random() * 98)}%`;
+    star.style.top = `${Math.round(random() * 68)}%`;
+    star.style.setProperty('--size', `${(random() * 2.3 + 1).toFixed(1)}px`);
+    star.style.setProperty('--alpha', (random() * .55 + .3).toFixed(2));
+    star.style.setProperty('--delay', `${(random() * 3).toFixed(1)}s`);
+    stars.append(star);
+  }
 
   function hasAnswer(step) {
     if (step === 'date') return Boolean(plan.date && !P.isExpired(plan.date));
@@ -48,57 +64,49 @@
     return index >= 0 && route.slice(0, index).every(hasAnswer);
   }
 
-  function renderStops() {
+  function renderSteps() {
     const route = P.getSteps(plan);
-    stops.replaceChildren();
-    route.forEach((step, index) => {
+    steps.replaceChildren();
+    route.forEach((step) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'stop';
-      button.textContent = stopNames[step];
+      button.className = 'step-pill';
+      button.textContent = stepNames[step];
       button.disabled = !canReach(step);
       if (step === current) {
         button.classList.add('current');
         button.setAttribute('aria-current', 'step');
-      } else if (hasAnswer(step)) {
-        button.classList.add('complete');
-      }
-      button.setAttribute('aria-label', `Stop ${index + 1}: ${stopNames[step]}`);
+      } else if (hasAnswer(step)) button.classList.add('complete');
       button.addEventListener('click', () => showStep(step));
-      stops.append(button);
+      steps.append(button);
     });
-    document.querySelector('#page-number').textContent = `${String(Math.max(1, route.indexOf(current) + 1)).padStart(2, '0')} / ${String(route.length).padStart(2, '0')}`;
+    const index = Math.max(0, route.indexOf(current));
+    const count = `${String(index + 1).padStart(2, '0')} / ${String(route.length).padStart(2, '0')}`;
+    document.querySelector('#step-count').textContent = count;
+    document.querySelector('#page-number').textContent = count;
   }
 
-  function renderRouteList() {
+  function renderRecap() {
     const lines = [
-      ['Departure', P.getDate(plan)?.short],
-      ['Time', P.getTimeLabel(plan)],
-      ['Mood', plan.setting === 'out' ? 'Out together' : plan.setting === 'home' ? 'At home together' : null],
-      ['Route', plan.route ? P.ROUTES[plan.route].short : null],
+      ['Day', P.getDate(plan)?.short],
+      ['Together', plan.setting === 'out' ? 'Going out' : plan.setting === 'home' ? 'Staying in' : null],
+      ['Plans', plan.route ? P.ROUTES[plan.route].short : null],
       ...(plan.route === 'explore' ? [['Activity', plan.activity]] : []),
       ['Lunch', P.getFood(plan)?.title],
+      ['Time', P.getTimeLabel(plan)],
     ];
-    for (const list of [document.querySelector('#route-list'), document.querySelector('#mobile-route-list')]) {
-      list.replaceChildren();
-      lines.forEach(([label, answer]) => {
-        const item = document.createElement('li');
-        const name = document.createElement('span');
-        const value = document.createElement('span');
-        name.className = 'label';
-        name.textContent = label;
-        value.className = `answer${answer ? '' : ' unfilled'}`;
-        value.textContent = answer || 'To be chosen';
-        item.append(name, value);
-        list.append(item);
-      });
+    const list = document.querySelector('#route-list');
+    list.replaceChildren();
+    for (const [label, answer] of lines) {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      const value = document.createElement('span');
+      name.textContent = label;
+      value.textContent = answer || 'To be chosen';
+      if (!answer) value.className = 'empty';
+      item.append(name, value);
+      list.append(item);
     }
-    const compact = [
-      P.getDate(plan)?.short,
-      P.getTimeLabel(plan),
-      plan.route ? P.ROUTES[plan.route].short : plan.setting === 'out' ? 'Out together' : plan.setting === 'home' ? 'Stay in together' : null,
-    ].filter(Boolean);
-    document.querySelector('#mobile-summary-text').textContent = compact.join(' · ') || 'Choose a day to begin';
   }
 
   function renderChoices() {
@@ -109,79 +117,80 @@
       button.setAttribute('aria-pressed', String(selected));
       if (field === 'date') button.disabled = P.isExpired(button.dataset.value);
     });
-    document.querySelectorAll('[data-for]').forEach((button) => {
-      button.hidden = button.dataset.for !== plan.setting;
-    });
-    const customSelected = Boolean(plan.activity && !presetActivities.includes(plan.activity));
-    const customButton = document.querySelector('#custom-choice');
-    customButton.classList.toggle('selected', customSelected);
-    customButton.setAttribute('aria-pressed', String(customSelected));
-    const activityInput = document.querySelector('#custom-activity');
-    if (customSelected && document.activeElement !== activityInput) activityInput.value = plan.activity;
-    const allExpired = P.DATES.every((date) => P.isExpired(date.iso));
-    document.querySelector('#date-message').textContent = allExpired ? 'These dates have passed. Ask for an updated invitation.' : '';
-    document.querySelector('#food-heading').textContent = plan.setting === 'home' ? 'How should we do lunch?' : 'Which café should we try?';
-    document.querySelector('#food-lead').textContent = plan.setting === 'home' ? 'A little outing, or lunch delivered to our door?' : 'A familiar favourite, or somewhere new?';
+    document.querySelectorAll('[data-for]').forEach((button) => { button.hidden = button.dataset.for !== plan.setting; });
+    const custom = Boolean(plan.activity && !presetActivities.includes(plan.activity));
+    document.querySelector('#custom-choice').classList.toggle('selected', custom);
+    document.querySelector('#custom-choice').setAttribute('aria-pressed', String(custom));
+    if (custom && document.activeElement !== document.querySelector('#custom-activity')) document.querySelector('#custom-activity').value = plan.activity;
+    document.querySelector('#date-message').textContent = P.DATES.every(({ iso }) => P.isExpired(iso)) ? 'These dates have passed. Please choose a new invitation.' : '';
+    document.querySelector('#food-lead').textContent = plan.setting === 'home' ? 'A small outing, or lunch delivered to our door?' : 'A familiar favourite, or somewhere new?';
     document.querySelector('#tufting-note').hidden = plan.route !== 'tufting';
   }
 
-  function renderTicket() {
-    document.querySelector('#ticket-date').textContent = P.getDate(plan)?.label || '';
-    document.querySelector('#ticket-time').textContent = P.getTimeLabel(plan) || '';
-    document.querySelector('#ticket-setting').textContent = plan.setting === 'out' ? 'Out together' : 'Stay in together';
-    document.querySelector('#ticket-route').textContent = P.ROUTES[plan.route]?.title || '';
-    document.querySelector('#ticket-activity').textContent = plan.activity || '';
+  function renderInvitation() {
+    const data = [
+      ['ticket-date', P.getDate(plan).label],
+      ['ticket-time', `${P.getTimeLabel(plan)} · Malaysia Time (UTC+8)`],
+      ['ticket-setting', plan.setting === 'out' ? 'Going out' : 'Staying in'],
+      ['ticket-route', P.ROUTES[plan.route].title],
+      ['ticket-activity', plan.activity || ''],
+      ['ticket-food', P.getFood(plan).title],
+      ['ticket-itinerary', P.getItinerary(plan)],
+    ];
+    data.forEach(([id, value]) => { document.getElementById(id).textContent = value; });
     document.querySelector('#ticket-activity-field').hidden = plan.route !== 'explore';
-    document.querySelector('#ticket-food').textContent = P.getFood(plan)?.title || '';
-    document.querySelector('#ticket-itinerary').textContent = P.getItinerary(plan);
-  }
-
-  function renderControls() {
-    controls.hidden = current === 'ticket';
-    backButton.hidden = current === 'date';
-    continueButton.disabled = !hasAnswer(current);
-    continueButton.innerHTML = current === 'time' ? 'Make our ticket <span aria-hidden="true">→</span>' : 'Continue <span aria-hidden="true">→</span>';
+    if (artworkUrl) URL.revokeObjectURL(artworkUrl);
+    artworkUrl = URL.createObjectURL(new Blob([A.buildInvitationSvg(plan)], { type: 'image/svg+xml' }));
+    document.querySelector('#art-preview').src = artworkUrl;
+    document.querySelector('#art-preview').alt = `Our little universe invitation for ${P.getDate(plan).label}, ${P.getTimeLabel(plan)}`;
   }
 
   function render() {
-    renderStops();
-    renderRouteList();
+    renderSteps();
+    renderRecap();
     renderChoices();
-    renderControls();
-    if (P.isComplete(plan)) renderTicket();
+    document.querySelector('#page-controls').hidden = current === 'ticket';
+    document.querySelector('#back').hidden = current === 'date';
+    document.querySelector('#continue').disabled = !hasAnswer(current);
+    document.querySelector('#continue').innerHTML = current === 'time' ? 'Make our invitation <span aria-hidden="true">→</span>' : 'Continue <span aria-hidden="true">→</span>';
+    stage.dataset.setting = plan.setting || 'none';
+    if (P.isComplete(plan)) renderInvitation();
   }
 
-  function removeTurningLeaf() {
-    window.clearTimeout(turnTimer);
-    pageBody.querySelector('.turning-leaf')?.remove();
+  function finishScene() {
+    clearTimeout(sceneTimer);
+    stage.classList.remove('cinematic', 'changing');
+    stage.classList.add('skipped');
+    document.querySelector('#skip').hidden = true;
+    document.querySelector('#replay').hidden = current !== 'ticket';
   }
 
-  function showStep(step, options = {}) {
-    if (!canReach(step)) return;
-    const previous = current;
-    if (previous === step && !options.initial) return;
-    if (previous === 'ticket') stopFinale();
-    const oldElement = document.querySelector(`.step[data-step="${previous}"]`);
-    const newElement = document.querySelector(`.step[data-step="${step}"]`);
-    const oldIndex = P.getSteps(plan).indexOf(previous);
-    const newIndex = P.getSteps(plan).indexOf(step);
-    removeTurningLeaf();
-    if (!options.initial && !motionReduced() && window.innerWidth > 700 && oldIndex >= 0) {
-      const leaf = document.createElement('div');
-      const direction = newIndex < oldIndex ? 'backward' : 'forward';
-      leaf.className = `turning-leaf ${direction}`;
-      leaf.setAttribute('aria-hidden', 'true');
-      leaf.inert = true;
-      const content = (direction === 'forward' ? oldElement : newElement).cloneNode(true);
-      content.hidden = false;
-      content.querySelectorAll('[id]').forEach((node) => node.removeAttribute('id'));
-      leaf.append(content);
-      pageBody.append(leaf);
-      turnTimer = window.setTimeout(removeTurningLeaf, 700);
-    }
-    oldElement.hidden = true;
-    newElement.hidden = false;
+  function playScene(duration = 1100) {
+    clearTimeout(sceneTimer);
+    stage.classList.remove('skipped', 'changing', 'finale');
+    void stage.offsetWidth;
+    stage.classList.add('changing');
+    if (current === 'ticket') stage.classList.add('finale');
+    if (!fullMotion || document.hidden) return finishScene();
+    stage.classList.add('cinematic');
+    document.querySelector('#skip').hidden = false;
+    document.querySelector('#replay').hidden = true;
+    sceneTimer = setTimeout(() => {
+      stage.classList.remove('cinematic', 'changing');
+      document.querySelector('#skip').hidden = true;
+      document.querySelector('#replay').hidden = current !== 'ticket';
+      planner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelector(`.step[data-step="${current}"] h2`)?.focus({ preventScroll: true });
+    }, duration);
+  }
+
+  function showStep(step) {
+    if (!canReach(step) || step === current) return;
+    document.querySelector(`.step[data-step="${current}"]`).hidden = true;
+    document.querySelector(`.step[data-step="${step}"]`).hidden = false;
     current = step;
+    stage.dataset.step = step;
+    document.querySelector('#scene-title').textContent = sceneWords[step];
     status.textContent = '';
     if (step === 'time') {
       document.querySelector('#start-time').value = plan.startTime || '';
@@ -189,234 +198,178 @@
       document.querySelector('#time-message').textContent = '';
     }
     render();
-    if (step === 'ticket') playFinale();
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    const delay = motionReduced() ? 0 : window.innerWidth <= 700 ? 100 : 520;
-    window.setTimeout(() => newElement.querySelector('h2')?.focus({ preventScroll: false }), delay);
-  }
-
-  function selectChoice(button) {
-    const field = button.dataset.choice;
-    const value = button.dataset.value;
-    try {
-      if (field === 'date') {
-        if (P.isExpired(value)) return;
-        plan = P.selectDate(plan, value);
-      } else if (field === 'setting') plan = P.selectSetting(plan, value);
-      else if (field === 'route') plan = P.selectRoute(plan, value);
-      else if (field === 'activity') plan = P.selectActivity(plan, value);
-      else if (field === 'food') plan = P.selectFood(plan, value);
-      document.querySelector('#custom-form').hidden = true;
-      render();
-    } catch (error) {
-      status.textContent = error.message;
+    playScene(step === 'ticket' ? 2400 : 1150);
+    if (!fullMotion) {
+      planner.scrollIntoView({ behavior: 'instant', block: 'start' });
+      document.querySelector(`.step[data-step="${step}"] h2`)?.focus({ preventScroll: true });
     }
   }
 
-  function resetSteam() {
-    trainScene.querySelectorAll('.steam-puff').forEach((puff) => puff.remove());
-  }
-
-  function placeTrain(x, distance) {
-    train.style.transform = `translateX(${x}px)`;
-    const angle = distance / (15 * 260 / 300);
-    const degrees = angle * 180 / Math.PI;
-    wheels.forEach((wheel) => wheel.setAttribute('transform', `rotate(${degrees} ${wheel.dataset.wheel} 96)`));
-    const crankX = 6 * Math.cos(angle);
-    const crankY = 6 * Math.sin(angle);
-    rod.setAttribute('x1', String(130 + crankX));
-    rod.setAttribute('y1', String(96 + crankY));
-    rod.setAttribute('x2', String(208 + crankX));
-    rod.setAttribute('y2', String(96 + crankY));
-  }
-
-  function releaseSteam(x) {
-    if (trainScene.querySelectorAll('.steam-puff').length >= 5) return;
-    const puff = document.createElement('span');
-    puff.className = 'steam-puff';
-    puff.style.left = `${x + 152}px`;
-    puff.style.top = `${trainScene.clientHeight - 113}px`;
-    trainScene.append(puff);
-    const animation = puff.animate([
-      { opacity: 0, transform: 'translate(0, 0) scale(.55)' },
-      { opacity: .74, offset: .25 },
-      { opacity: 0, transform: 'translate(-22px, -37px) scale(1.8)' },
-    ], { duration: 700, easing: 'ease-out' });
-    animation.finished.then(() => puff.remove()).catch(() => puff.remove());
-  }
-
-  function stopFinale() {
-    window.cancelAnimationFrame(finaleFrame);
-    window.clearTimeout(deliveryTimer);
-    finaleFrame = 0;
-    ticket.getAnimations().forEach((animation) => animation.cancel());
-    resetSteam();
-  }
-
-  function showDelivered() {
-    finalStep.classList.add('delivered');
-    trainScene.classList.add('delivered');
-    document.querySelector('#skip').hidden = true;
-    document.querySelector('#replay').hidden = false;
-    status.textContent = 'Your ticket is ready.';
-  }
-
-  function finishFinale(immediate = false) {
-    window.cancelAnimationFrame(finaleFrame);
-    window.clearTimeout(deliveryTimer);
-    finaleFrame = 0;
-    resetSteam();
-    const endX = Math.max(6, (trainScene.clientWidth - 260) / 2);
-    placeTrain(endX, endX + 260);
-    if (immediate || motionReduced()) {
-      showDelivered();
-      return;
-    }
-    deliveryTimer = window.setTimeout(() => {
-      showDelivered();
-      const animation = ticket.animate([
-        { opacity: 1, transform: 'translateY(-18px) rotate(-.3deg)', clipPath: 'inset(0 0 100% 0)' },
-        { opacity: 1, transform: 'translateY(5px) rotate(.15deg)', clipPath: 'inset(0 0 0 0)', offset: .84 },
-        { opacity: 1, transform: 'none', clipPath: 'inset(0 0 0 0)' },
-      ], { duration: 490, easing: 'cubic-bezier(.17,.8,.28,1)', fill: 'both' });
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    }, 120);
-  }
-
-  function playFinale() {
-    stopFinale();
-    finalStep.classList.remove('delivered');
-    trainScene.classList.remove('delivered');
-    document.querySelector('#skip').hidden = motionReduced();
-    document.querySelector('#replay').hidden = !motionReduced();
-    status.textContent = '';
-    const startX = -260;
-    placeTrain(startX, 0);
-    if (motionReduced()) return finishFinale(true);
-    const endX = Math.max(6, (trainScene.clientWidth - 260) / 2);
-    const travel = endX - startX;
-    const duration = 1130;
-    let start = null;
-    lastSteam = 0;
-    const frame = (time) => {
-      if (start === null) start = time;
-      const progress = Math.min(1, (time - start) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const x = startX + travel * eased;
-      placeTrain(x, x - startX);
-      if (progress > .12 && progress < .83 && time - lastSteam > 160) {
-        releaseSteam(x);
-        lastSteam = time;
-      }
-      if (progress < 1) finaleFrame = window.requestAnimationFrame(frame);
-      else finishFinale();
-    };
-    finaleFrame = window.requestAnimationFrame(frame);
-  }
-
-  document.querySelector('#open-book').addEventListener('click', () => {
+  document.querySelector('#open-observatory').addEventListener('click', () => {
     if (opened) return;
     opened = true;
-    book.classList.add('is-open');
-    cover.inert = true;
-    spread.inert = false;
-    const delay = motionReduced() ? 0 : 780;
-    window.setTimeout(() => book.classList.add('opened'), delay);
-    window.setTimeout(() => document.querySelector('#date-heading').focus({ preventScroll: false }), delay);
+    stage.classList.add('open');
+    planner.hidden = false;
+    stage.dataset.step = 'date';
+    document.querySelector('#scene-title').textContent = sceneWords.date;
+    if (!fullMotion) stage.classList.add('skipped');
+    setTimeout(() => {
+      planner.scrollIntoView({ behavior: fullMotion ? 'smooth' : 'instant', block: 'start' });
+      document.querySelector('#date-heading').focus({ preventScroll: true });
+    }, fullMotion ? 1900 : 20);
   });
 
-  document.querySelectorAll('[data-choice]').forEach((button) => button.addEventListener('click', () => selectChoice(button)));
-  document.querySelector('#custom-choice').addEventListener('click', () => {
-    const form = document.querySelector('#custom-form');
-    form.hidden = false;
-    document.querySelector('#custom-activity').focus();
-  });
+  document.querySelectorAll('[data-choice]').forEach((button) => button.addEventListener('click', () => {
+    const { choice, value } = button.dataset;
+    try {
+      if (choice === 'date') plan = P.selectDate(plan, value);
+      if (choice === 'setting') plan = P.selectSetting(plan, value);
+      if (choice === 'route') plan = P.selectRoute(plan, value);
+      if (choice === 'activity') plan = P.selectActivity(plan, value);
+      if (choice === 'food') plan = P.selectFood(plan, value);
+      document.querySelector('#custom-form').hidden = true;
+      render();
+      if (choice === 'setting') playScene(1350);
+      if (choice === 'date' || choice === 'setting') stage.dataset.setting = plan.setting || 'none';
+    } catch (error) { status.textContent = error.message; }
+  }));
+  document.querySelector('#custom-choice').addEventListener('click', () => { document.querySelector('#custom-form').hidden = false; document.querySelector('#custom-activity').focus(); });
   document.querySelector('#custom-form').addEventListener('submit', (event) => {
     event.preventDefault();
     const input = document.querySelector('#custom-activity');
-    try {
-      plan = P.selectActivity(plan, input.value);
-      document.querySelector('#custom-form').hidden = true;
-      render();
-    } catch (error) {
-      input.setCustomValidity(error.message);
-      input.reportValidity();
-      input.setCustomValidity('');
-    }
+    try { plan = P.selectActivity(plan, input.value); document.querySelector('#custom-form').hidden = true; render(); }
+    catch (error) { input.setCustomValidity(error.message); input.reportValidity(); input.setCustomValidity(''); }
   });
   function updateTime() {
-    const startTime = document.querySelector('#start-time').value;
-    const endTime = document.querySelector('#end-time').value;
+    const start = document.querySelector('#start-time').value;
+    const end = document.querySelector('#end-time').value;
     const message = document.querySelector('#time-message');
     try {
-      if (!startTime || !endTime) {
-        plan = P.selectTime(plan, null, null);
-        message.textContent = 'Choose both times to continue.';
-      } else {
-        plan = P.selectTime(plan, startTime, endTime);
-        message.textContent = '';
-      }
-    } catch (error) {
-      plan = P.selectTime(plan, null, null);
-      message.textContent = error.message;
-    }
+      if (!start || !end) { plan = P.selectTime(plan, null, null); message.textContent = 'Choose both times to continue.'; }
+      else { plan = P.selectTime(plan, start, end); message.textContent = ''; }
+    } catch (error) { plan = P.selectTime(plan, null, null); message.textContent = error.message; }
     render();
   }
   document.querySelector('#start-time').addEventListener('input', updateTime);
   document.querySelector('#end-time').addEventListener('input', updateTime);
-  continueButton.addEventListener('click', () => {
-    if (!hasAnswer(current)) return;
-    const route = P.getSteps(plan);
-    showStep(route[route.indexOf(current) + 1]);
-  });
-  backButton.addEventListener('click', () => {
-    const route = P.getSteps(plan);
-    showStep(route[route.indexOf(current) - 1]);
-  });
+  document.querySelector('#continue').addEventListener('click', () => { if (hasAnswer(current)) { const route = P.getSteps(plan); showStep(route[route.indexOf(current) + 1]); } });
+  document.querySelector('#back').addEventListener('click', () => { const route = P.getSteps(plan); showStep(route[route.indexOf(current) - 1]); });
   document.querySelectorAll('[data-edit]').forEach((button) => button.addEventListener('click', () => showStep(button.dataset.edit)));
-  document.querySelector('#skip').addEventListener('click', () => finishFinale(true));
-  document.querySelector('#replay').addEventListener('click', playFinale);
-  function downloadContent(content, type, filename) {
-    const url = URL.createObjectURL(new Blob([content], { type }));
+  document.querySelector('#skip').addEventListener('click', () => { finishScene(); planner.scrollIntoView({ behavior: 'instant', block: 'start' }); document.querySelector(`.step[data-step="${current}"] h2`)?.focus({ preventScroll: true }); });
+  document.querySelector('#replay').addEventListener('click', () => playScene(2400));
+  document.querySelector('#replay-final').addEventListener('click', () => playScene(2400));
+  function updateVisibility() {
+    document.documentElement.dataset.hidden = String(document.hidden);
+    if (document.hidden && stage.classList.contains('cinematic')) finishScene();
+  }
+  document.addEventListener('visibilitychange', updateVisibility);
+  updateVisibility();
+
+  function download(blob, filename) {
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     document.body.append(link);
     link.click();
     link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  function getPngBase64() {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const url = URL.createObjectURL(new Blob([A.buildInvitationSvg(plan)], { type: 'image/svg+xml' }));
+      image.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1200;
+          canvas.height = 675;
+          canvas.getContext('2d').drawImage(image, 0, 0, 1200, 675);
+          resolve(canvas.toDataURL('image/png').split(',')[1]);
+        } catch (error) { reject(error); }
+        finally { URL.revokeObjectURL(url); }
+      };
+      image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('The invitation image could not be created')); };
+      image.src = url;
+    });
+  }
+
+  function pngFile(value) {
+    const bytes = Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
+    return new File([bytes], `our-little-universe-${plan.date}.png`, { type: 'image/png' });
+  }
+  function calendarFile() { return new File([P.buildCalendar(plan)], `our-date-${plan.date}.ics`, { type: 'text/calendar' }); }
+  document.querySelector('#calendar').addEventListener('click', () => { try { download(calendarFile(), `our-date-${plan.date}.ics`); status.textContent = 'Calendar event downloaded.'; } catch (error) { status.textContent = error.message; } });
+  document.querySelector('#save-image').addEventListener('click', async () => { try { download(pngFile(await getPngBase64()), `our-little-universe-${plan.date}.png`); status.textContent = 'Invitation image saved.'; } catch (error) { status.textContent = error.message; } });
+  document.querySelector('#dialog-save-image').addEventListener('click', async () => { try { download(pngFile(await getPngBase64()), `our-little-universe-${plan.date}.png`); emailStatus.textContent = 'Invitation image saved.'; } catch (error) { emailStatus.textContent = error.message; } });
+  document.querySelector('#dialog-calendar').addEventListener('click', () => { try { download(calendarFile(), `our-date-${plan.date}.ics`); emailStatus.textContent = 'Calendar event downloaded.'; } catch (error) { emailStatus.textContent = error.message; } });
+
+  async function checkEmailConfig() {
+    const help = document.querySelector('#send-help');
+    try {
+      const response = await fetch('/api/status', { cache: 'no-store' });
+      if (!response.ok) throw new Error('unavailable');
+      sendAvailable = Boolean((await response.json()).available);
+    } catch { sendAvailable = false; }
+    document.querySelector('#send-email').hidden = !sendAvailable;
+    help.textContent = sendAvailable ? 'Send invitation will email the designed message and attachments after you press it.' : 'Direct sending needs server email configuration. You can still use your email app, download the designed draft, or share the files.';
   }
   document.querySelector('#email').addEventListener('click', () => {
     try {
-      const draft = E.buildEmailDraft(plan);
-      downloadContent(draft, 'message/rfc822;charset=utf-8', `our-date-${plan.date}.eml`);
-      status.textContent = 'Email draft downloaded for modquack@gmail.com. Open it in your email app, review it, and press Send.';
-    } catch (error) {
-      status.textContent = error.message;
-    }
+      document.querySelector('#email-preview').srcdoc = E.buildEmailHtml(plan);
+      document.querySelector('#email-status').textContent = '';
+      dialog.showModal();
+      checkEmailConfig();
+    } catch (error) { status.textContent = error.message; }
   });
-  document.querySelector('#calendar').addEventListener('click', () => {
+  document.querySelector('#close-email').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+  const emailStatus = document.querySelector('#email-status');
+  document.querySelector('#send-email').addEventListener('click', async (event) => {
+    if (!sendAvailable) return;
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = 'Sending…';
+    emailStatus.textContent = '';
     try {
-      const calendar = P.buildCalendar(plan);
-      downloadContent(calendar, 'text/calendar;charset=utf-8', `our-date-${plan.date}.ics`);
-      status.textContent = 'Calendar file downloaded for the date shown above.';
-    } catch (error) {
-      status.textContent = error.message;
-    }
+      const png = await getPngBase64();
+      const response = await fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan, png }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'The invitation could not be sent');
+      emailStatus.textContent = result.duplicate ? 'This invitation was already accepted for sending to modquack@gmail.com.' : 'The email provider accepted this invitation for modquack@gmail.com.';
+    } catch (error) { emailStatus.textContent = error.message; }
+    finally { button.disabled = false; button.textContent = 'Send invitation'; }
   });
-
-  window.addEventListener('resize', () => {
-    if (current === 'ticket' && finalStep.classList.contains('delivered')) {
-      const x = Math.max(6, (trainScene.clientWidth - 260) / 2);
-      placeTrain(x, x + 260);
-    }
+  document.querySelector('#open-email').addEventListener('click', () => {
+    const subject = `Our little universe | ${P.getDate(plan).label}`;
+    location.href = `mailto:${E.RECIPIENT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(E.buildEmailText(plan))}`;
+    emailStatus.textContent = 'If your email app opened, review the draft before sending. Add the downloaded artwork and calendar file if you want attachments.';
   });
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && current === 'ticket' && !finalStep.classList.contains('delivered')) finishFinale(true);
+  document.querySelector('#download-email').addEventListener('click', async () => {
+    try {
+      const png = await getPngBase64();
+      download(new Blob([E.buildEmailDraft(plan, new Date(), png)], { type: 'message/rfc822' }), `our-little-universe-${plan.date}.eml`);
+      emailStatus.textContent = 'Designed email draft downloaded. Open it in a compatible email app, review, then send.';
+    } catch (error) { emailStatus.textContent = error.message; }
   });
-  reducedMotion.addEventListener('change', () => {
-    document.querySelector('#motion-link').hidden = !motionReduced();
-    if (motionReduced() && current === 'ticket' && !finalStep.classList.contains('delivered')) finishFinale(true);
+  document.querySelector('#share-invitation').addEventListener('click', async () => {
+    try {
+      const image = pngFile(await getPngBase64());
+      const calendar = calendarFile();
+      if (!navigator.canShare || !navigator.share) throw new Error('Sharing files is unavailable in this browser. Save the image and calendar instead.');
+      if (navigator.canShare({ files: [image, calendar] })) {
+        await navigator.share({ files: [image, calendar], title: 'Our little universe', text: E.buildEmailText(plan) });
+        emailStatus.textContent = 'Files passed to the chosen app. Review there before sending.';
+      } else if (navigator.canShare({ files: [image] })) {
+        await navigator.share({ files: [image], title: 'Our little universe', text: E.buildEmailText(plan) });
+        emailStatus.textContent = 'Artwork passed to the chosen app. Download the calendar separately if you want to attach it.';
+      } else throw new Error('This device cannot share the invitation files. Save them instead.');
+    } catch (error) { if (error.name !== 'AbortError') emailStatus.textContent = error.message; }
+  });
+  document.querySelector('#copy-details').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(E.buildEmailText(plan)); emailStatus.textContent = 'Invitation details copied.'; }
+    catch { emailStatus.textContent = 'Copying is unavailable here. Use the email app option instead.'; }
   });
 
   render();

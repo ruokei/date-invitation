@@ -2,8 +2,8 @@
   'use strict';
 
   const DATES = [
-    { iso: '2026-10-03', label: 'Saturday, October 3, 2026', short: 'Sat, Oct 3', badge: 'Saturday Express' },
-    { iso: '2026-10-04', label: 'Sunday, October 4, 2026', short: 'Sun, Oct 4', badge: 'Sunday Line' },
+    { iso: '2026-10-10', label: 'Saturday, October 10, 2026', short: 'Sat, Oct 10', badge: 'Saturday' },
+    { iso: '2026-10-11', label: 'Sunday, October 11, 2026', short: 'Sun, Oct 11', badge: 'Sunday' },
   ];
   const TIME_ZONE = 'Asia/Kuala_Lumpur';
 
@@ -145,19 +145,20 @@
     const compactDate = plan.date.replace(/-/g, '');
     const calendarStamp = (date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-    const uid = `${compactDate}-${plan.setting}-${plan.route}-${stamp}@date-railway.local`;
+    const uid = `${compactDate}-our-little-universe@midnight-observatory.local`;
     const details = `${getDate(plan).label}, ${getTimeLabel(plan)}. ${ROUTES[plan.route].title}. ${getItinerary(plan)}.`;
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//The Date Railway//Date Invitation//EN',
+      'PRODID:-//Midnight Observatory//Date Invitation//EN',
       'CALSCALE:GREGORIAN',
+      `X-WR-TIMEZONE:${TIME_ZONE}`,
       'BEGIN:VEVENT',
       `UID:${uid}`,
       `DTSTAMP:${stamp}`,
       `DTSTART:${calendarStamp(start)}`,
       `DTEND:${calendarStamp(end)}`,
-      'SUMMARY:Our next little adventure',
+      'SUMMARY:Our little universe',
       `DESCRIPTION:${escapeCalendar(details)}`,
       'END:VEVENT',
       'END:VCALENDAR',

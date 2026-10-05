@@ -2,190 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#183e32">
-  <meta name="description" content="A little railway story, a day to choose, and a ticket just for us.">
-  <title>The Date Railway · Our next little adventure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080f24">
+  <meta name="description" content="A little time, just for us. Choose our next adventure beneath the stars.">
+  <title>Midnight Observatory · Our little universe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Gilda+Display&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="planner.js" defer></script>
+  <script src="artwork.js" defer></script>
   <script src="email.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
-  <main class="scene">
-    <div class="ambient-grain" aria-hidden="true"></div>
-    <div class="book" id="book">
-      <div class="paper-edge" aria-hidden="true"></div>
-      <div class="spread" id="spread" inert>
-        <aside class="left-page" aria-label="Your route so far">
-          <div class="book-colophon"><span>The Date Railway</span><span>Volume 01 / 2026</span></div>
-          <div class="illustration" aria-hidden="true">
-            <div class="illustration-sun"></div>
-            <svg viewBox="0 0 510 275" role="presentation">
-              <path d="M0 216 Q75 169 162 201 T328 196 T510 210 V275 H0Z" fill="#c9b98e"/>
-              <path d="M0 237 Q95 185 190 223 T360 210 T510 228 V275 H0Z" fill="#a8b39b"/>
-              <path d="M0 253 Q100 221 225 240 T510 244 V275 H0Z" fill="#6a8a73"/>
-              <path d="M0 237H510 M0 245H510" stroke="#715542" stroke-width="3"/>
-              <path d="M30 237v8m60-8v8m60-8v8m60-8v8m60-8v8m60-8v8m60-8v8m60-8v8" stroke="#715542" stroke-width="4"/>
-              <path d="M55 222V133l22-15 22 15v89m-35-64h26m-26 26h26M384 218v-53l27-20 27 20v53m-42-41h29" fill="none" stroke="#274a3b" stroke-width="7" stroke-linejoin="round"/>
-              <path d="M45 223h68m261-5h77" stroke="#274a3b" stroke-width="9"/>
-            </svg>
-            <p class="illustration-caption">Every good journey begins with one small yes.</p>
-          </div>
-          <div class="route-card">
-            <div class="route-card-title"><span class="route-card-icon" aria-hidden="true"></span><h2>Our route so far</h2></div>
-            <ol class="route-list" id="route-list"></ol>
-          </div>
-          <p class="left-foot">Two passengers · One little adventure</p>
-        </aside>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Midnight Observatory, start again"><span class="brand-mark" aria-hidden="true">✦</span><span>Midnight<br>Observatory</span></a>
+    <div class="top-actions"><span class="edition">An invitation for two</span><button class="motion-button" type="button" id="motion-toggle" aria-pressed="true">Motion on</button></div>
+  </header>
 
-        <div class="right-page" id="right-page">
-          <nav class="stops" id="stops" aria-label="Journey stops"></nav>
-          <details class="mobile-route-summary">
-            <summary><span>OUR ROUTE</span><strong id="mobile-summary-text">Choose a day to begin</strong></summary>
-            <ol id="mobile-route-list"></ol>
-          </details>
-          <div class="page-body" id="page-body">
-            <section class="step" data-step="date" aria-labelledby="date-heading">
-              <p class="chapter">The departure</p>
-              <h2 id="date-heading" tabindex="-1">Which day feels right?</h2>
-              <p class="lead">Pick the day we will spend together. The ticket will remember your choice.</p>
-              <div class="choices" role="group" aria-label="Choose a day">
-                <button class="choice" type="button" data-choice="date" data-value="2026-10-03" aria-pressed="false"><span class="choice-index">01 / Saturday</span><strong>The Saturday Express</strong><span class="choice-detail">October 3, 2026 · a whole day ahead</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="date" data-value="2026-10-04" aria-pressed="false"><span class="choice-index">02 / Sunday</span><strong>The Sunday Line</strong><span class="choice-detail">October 4, 2026 · take it slowly</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-              </div>
-              <p class="field-message" id="date-message" role="status"></p>
-            </section>
+  <main>
+    <section class="stage intro" id="stage" data-step="date" data-setting="none" aria-label="Animated midnight observatory">
+      <div class="sky" aria-hidden="true"><div class="sky-glow"></div><div class="stars" id="stars"></div><div class="moon"></div></div>
+      <svg class="constellation" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M150 200 L375 120 L565 258 L801 150 L1000 260 L1300 145 L1515 220 M200 620 L460 520 L675 655 L850 490 L1155 605 L1440 540 M375 120 L460 520 M801 150 L850 490 M1300 145 L1155 605"/><g><circle cx="150" cy="200" r="7"/><circle cx="375" cy="120" r="8"/><circle cx="565" cy="258" r="6"/><circle cx="801" cy="150" r="8"/><circle cx="1000" cy="260" r="6"/><circle cx="1300" cy="145" r="8"/><circle cx="1515" cy="220" r="7"/><circle cx="200" cy="620" r="6"/><circle cx="460" cy="520" r="8"/><circle cx="675" cy="655" r="6"/><circle cx="850" cy="490" r="8"/><circle cx="1155" cy="605" r="6"/><circle cx="1440" cy="540" r="7"/></g></svg>
+      <div class="city-scene" aria-hidden="true"><div class="city-haze"></div><svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice"><path d="M0 410V235h90v-80h35v80h125V92h52v-45h25v45h70v165h80V176h100v95h89V95h36V52h27v43h74v153h80v-77h74v71h84V90h62v-44h22v44h55v180h100V167h80v112h85V203h100v207Z" fill="#14213b"/><path d="M0 450V340h111v-57h80v70h160V274h140v84h100V294h110v76h175V266h94v68h121v-70h140v91h170v95Z" fill="#0b152b"/><path d="M0 465H1600" stroke="#b6a078" stroke-opacity=".35" stroke-width="2"/><g fill="#e8c486" opacity=".72"><path d="M277 135h6v10h-6zm40 28h6v10h-6zm296 36h6v10h-6zm115-58h6v10h-6zm210 58h6v10h-6zm149-61h6v10h-6zm111 62h6v10h-6zm228 66h6v10h-6z"/><path d="M65 292h5v10h-5zm119 85h5v10h-5zm210-45h5v10h-5zm323 40h5v10h-5zm149-79h5v10h-5zm314 58h5v10h-5zm278 17h5v10h-5z"/></g></svg></div>
+      <div class="home-scene" aria-hidden="true"><div class="window-glow"></div><div class="window-frame"></div><div class="curtain curtain-left"></div><div class="curtain curtain-right"></div><div class="room-floor"></div><div class="sofa"><span class="sofa-cushion"></span></div><div class="lamp"><span class="lamp-shade"></span><span class="lamp-post"></span></div></div>
+      <svg class="observatory" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><linearGradient id="dome-metal" x1="0" x2="1" y2=".2"><stop stop-color="#18253e"/><stop offset=".48" stop-color="#54647a"/><stop offset="1" stop-color="#111a2c"/></linearGradient><linearGradient id="brass" x1="0" x2="1" y2="1"><stop stop-color="#ead4a1"/><stop offset=".48" stop-color="#91744a"/><stop offset="1" stop-color="#4d3a27"/></linearGradient><linearGradient id="tube" x1="0" x2="0" y2="1"><stop stop-color="#bdad89"/><stop offset=".34" stop-color="#586678"/><stop offset=".65" stop-color="#18263a"/><stop offset="1" stop-color="#090f1c"/></linearGradient><filter id="soft-shadow"><feGaussianBlur stdDeviation="18"/></filter></defs>
+        <ellipse cx="800" cy="780" rx="480" ry="50" fill="#020710" opacity=".7" filter="url(#soft-shadow)"/>
+        <g class="telescope" id="telescope"><path d="M766 509h68l60 252H707Z" fill="url(#dome-metal)" stroke="url(#brass)" stroke-width="8"/><path d="M684 755h230v33H684z" fill="#725b3c"/><path d="M736 776h125v35H736z" fill="#3b3c43"/><circle cx="800" cy="501" r="54" fill="url(#brass)" stroke="#e6cf98" stroke-width="7"/><circle cx="800" cy="501" r="24" fill="#24354c"/><g class="telescope-tube" id="telescope-tube"><path d="M542 418h526l38 31v58l-38 30H542l-39-32v-56z" fill="url(#tube)" stroke="#b9a276" stroke-width="8"/><path d="M616 417v120M960 417v120" stroke="#d9c393" stroke-width="16"/><path d="M532 412h50v131h-50z" fill="url(#brass)"/><path d="M1050 408h70v136h-70z" fill="url(#brass)"/><ellipse cx="1120" cy="476" rx="23" ry="67" fill="#b9a376"/><ellipse cx="1121" cy="476" rx="17" ry="58" fill="#152b4d"/><ellipse cx="1123" cy="475" rx="10" ry="42" fill="#81aec2" opacity=".6"/><path d="M596 438h427" stroke="#f1dfb1" stroke-opacity=".55" stroke-width="3"/><path d="M596 521h427" stroke="#000" stroke-opacity=".5" stroke-width="6"/></g></g>
+        <path class="dome-base" d="M0 740Q400 679 800 700T1600 740V900H0Z" fill="#0a1120" stroke="#927c58" stroke-width="9"/><path class="dome-base" d="M0 819Q800 764 1600 819" fill="none" stroke="#8f7952" stroke-opacity=".6" stroke-width="8"/>
+        <g class="dome-left"><path d="M160 688C143 349 406 141 800 129V701Z" fill="url(#dome-metal)" stroke="#b69d70" stroke-width="10"/><path d="M180 605Q357 551 796 560M219 433Q430 398 796 400M322 258Q540 249 796 251" fill="none" stroke="#d6c092" stroke-opacity=".24" stroke-width="8"/><path d="M770 140v556" stroke="#ecd3a0" stroke-opacity=".52" stroke-width="5"/></g>
+        <g class="dome-right"><path d="M800 129C1194 141 1457 349 1440 688L800 701Z" fill="url(#dome-metal)" stroke="#b69d70" stroke-width="10"/><path d="M804 560Q1243 551 1420 605M804 400Q1170 398 1381 433M804 251Q1060 249 1278 258" fill="none" stroke="#d6c092" stroke-opacity=".24" stroke-width="8"/><path d="M830 140v556" stroke="#ecd3a0" stroke-opacity=".52" stroke-width="5"/></g>
+      </svg>
+      <div class="chart" aria-hidden="true"><div class="chart-ring chart-outer"><div class="chart-ring chart-middle"><div class="chart-ring chart-inner"><span>✦</span></div></div></div></div>
+      <div class="scene-caption" id="scene-caption"><span class="caption-icon" aria-hidden="true">✦</span><span id="scene-title">Tonight, we make a little space for us.</span></div>
+      <div class="welcome" id="welcome"><p class="welcome-note">An invitation beneath the stars</p><h1>Our little<br>universe.</h1><p>A little time, just for us.</p><button class="primary-action open-action" type="button" id="open-observatory">Open the observatory <span aria-hidden="true">↗</span></button></div>
+      <div class="scene-tools"><button type="button" id="skip" hidden>Skip animation</button><button type="button" id="replay" hidden>Replay scene</button></div>
+    </section>
 
-            <section class="step" data-step="setting" aria-labelledby="setting-heading" hidden>
-              <p class="chapter">The mood</p>
-              <h2 id="setting-heading" tabindex="-1">Out in the world, or cozy at home?</h2>
-              <p class="lead">There is no wrong route. What kind of day would make you happiest?</p>
-              <div class="choices" role="group" aria-label="Choose the setting">
-                <button class="choice" type="button" data-choice="setting" data-value="out" aria-pressed="false"><span class="choice-index">A / Adventure</span><strong>Go out together</strong><span class="choice-detail">A café, a little exploring, and dinner.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="setting" data-value="home" aria-pressed="false"><span class="choice-index">B / Slow day</span><strong>Stay in together</strong><span class="choice-detail">Lunch, comfy clothes, and all the time we need.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-              </div>
-            </section>
-
-            <section class="step" data-step="route" aria-labelledby="route-heading" hidden>
-              <p class="chapter">The route</p>
-              <h2 id="route-heading" tabindex="-1">Where should the day take us?</h2>
-              <p class="lead">Choose the shape of our day. We can still change it later.</p>
-              <div class="choices" role="group" aria-label="Choose a route">
-                <button class="choice" type="button" data-choice="route" data-value="tufting" data-for="out" aria-pressed="false"><span class="choice-index">Route 01 / Make</span><strong>Finish our tufting</strong><span class="choice-detail">Lunch, tufting at two, a mall stroll, and dinner.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="route" data-value="explore" data-for="out" aria-pressed="false"><span class="choice-index">Route 02 / Explore</span><strong>Try something new</strong><span class="choice-detail">You choose an activity; I will be there beside you.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="route" data-value="slow" data-for="home" aria-pressed="false"><span class="choice-index">Route 01 / Rest</span><strong>A slow day in</strong><span class="choice-detail">Shows, rest, family dinner, and nowhere else to be.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="route" data-value="creative" data-for="home" aria-pressed="false"><span class="choice-index">Route 02 / Create</span><strong>A creative home day</strong><span class="choice-detail">Make something together, then settle in.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-              </div>
-            </section>
-
-            <section class="step" data-step="activity" aria-labelledby="activity-heading" hidden>
-              <p class="chapter">The little detour</p>
-              <h2 id="activity-heading" tabindex="-1">What should we try?</h2>
-              <p class="lead">A new memory, made by both of us.</p>
-              <div class="choices choice-grid" role="group" aria-label="Choose an activity">
-                <button class="choice" type="button" data-choice="activity" data-value="Bead art" aria-pressed="false"><span class="choice-index">Make</span><strong>Bead art</strong><span class="choice-detail">Something small and colourful.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="activity" data-value="Rock climbing" aria-pressed="false"><span class="choice-index">Climb</span><strong>Rock climbing</strong><span class="choice-detail">A challenge side by side.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="activity" data-value="Pottery" aria-pressed="false"><span class="choice-index">Shape</span><strong>Pottery</strong><span class="choice-detail">Get a little messy together.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" id="custom-choice" aria-pressed="false"><span class="choice-index">Your idea</span><strong>Something else</strong><span class="choice-detail">Write your own detour.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-              </div>
-              <form class="custom-form" id="custom-form" hidden><label for="custom-activity">Your activity</label><div class="custom-input-row"><input id="custom-activity" maxlength="60" autocomplete="off" placeholder="e.g. an escape room" required><button class="small-action" type="submit">Use this idea</button></div></form>
-            </section>
-
-            <section class="step" data-step="food" aria-labelledby="food-heading" hidden>
-              <p class="chapter">A delicious stop</p>
-              <h2 id="food-heading" tabindex="-1">Where should lunch be?</h2>
-              <p class="lead" id="food-lead">Pick our first delicious stop.</p>
-              <div class="choices" role="group" aria-label="Choose lunch">
-                <button class="choice" type="button" data-choice="food" data-value="favorite" data-for="out" aria-pressed="false"><span class="choice-index">A familiar stop</span><strong>Your favourite café</strong><span class="choice-detail">Your usual order, with me across the table.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="food" data-value="new" data-for="out" aria-pressed="false"><span class="choice-index">A new stop</span><strong>A new café to try</strong><span class="choice-detail">Somewhere we can discover together.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="food" data-value="eatout" data-for="home" aria-pressed="false"><span class="choice-index">Before we head home</span><strong>Eat out for lunch</strong><span class="choice-detail">A small outing before our cozy afternoon.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-                <button class="choice" type="button" data-choice="food" data-value="delivery" data-for="home" aria-pressed="false"><span class="choice-index">Stay in</span><strong>Get lunch delivered</strong><span class="choice-detail">Settle in and take our time.</span><span class="choice-stamp" aria-hidden="true">SELECTED</span></button>
-              </div>
-            </section>
-
-            <section class="step" data-step="time" aria-labelledby="time-heading" hidden>
-              <p class="chapter">The timetable</p>
-              <h2 id="time-heading" tabindex="-1">What time shall we meet?</h2>
-              <p class="lead">Choose when our day begins and ends. All times are Malaysia Time (UTC+8).</p>
-              <div class="time-fields">
-                <label class="time-field" for="start-time"><span>Departure time</span><input id="start-time" type="time" step="900" required></label>
-                <label class="time-field" for="end-time"><span>Return time</span><input id="end-time" type="time" step="900" required></label>
-              </div>
-              <p class="time-note" id="tufting-note" hidden>Our tufting stop is at 2:00 PM, so include that time.</p>
-              <p class="field-message" id="time-message" role="status" aria-live="polite"></p>
-            </section>
-
-            <section class="step final-step" data-step="ticket" aria-labelledby="ticket-heading" hidden>
-              <h2 id="ticket-heading" tabindex="-1">It’s a date.</h2>
-              <p class="final-lead">One little journey, made just for us.</p>
-              <div class="train-scene" id="train-scene" aria-hidden="true">
-                <div class="station-sign">DATE NIGHT <span>STATION</span></div>
-                <div class="platform-slot"><span>YOUR TICKET</span></div>
-                <div class="track"></div>
-                <svg class="train" id="train" viewBox="0 0 300 130" role="presentation">
-                  <defs><linearGradient id="engine-paint" x2="0" y2="1"><stop stop-color="#36654d"/><stop offset="1" stop-color="#173d32"/></linearGradient></defs>
-                  <path d="M26 93h252v10H26z" fill="#302d29"/>
-                  <path d="M29 45h67v48H29zM42 27h44v18H42z" fill="#9a4e37" stroke="#4f3026" stroke-width="3"/>
-                  <path d="M103 42h110v51H103zM212 56h28l19 37h-47z" fill="url(#engine-paint)" stroke="#18372e" stroke-width="3"/>
-                  <path d="M112 35h91v10h-91z" fill="#c9965d"/>
-                  <path d="M165 38V18h21v20z" fill="#302d29"/>
-                  <path d="M155 17h42v7h-42z" fill="#302d29"/>
-                  <path d="M124 58h29v22h-29zM166 58h29v22h-29z" fill="#eacb8a"/>
-                  <path d="M46 57h31v22H46z" fill="#eacb8a"/>
-                  <path d="M104 83h108" stroke="#d1ac75" stroke-width="4"/>
-                  <path d="M236 77h21v14h-21z" fill="#c9965d"/>
-                  <path d="M257 83h16v10h-16z" fill="#574030"/>
-                  <path d="M36 100h238" stroke="#bd8f62" stroke-width="4"/>
-                  <g class="wheel" data-wheel="65"><circle cx="65" cy="96" r="15"/><path d="M65 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
-                  <g class="wheel" data-wheel="130"><circle cx="130" cy="96" r="15"/><path d="M130 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
-                  <g class="wheel" data-wheel="208"><circle cx="208" cy="96" r="15"/><path d="M208 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
-                  <g class="wheel" data-wheel="265"><circle cx="265" cy="96" r="15"/><path d="M265 82v28m-14-14h28m-24-10 20 20m0-20-20 20"/></g>
-                  <line class="drive-rod" id="drive-rod" x1="136" y1="96" x2="214" y2="96"/>
-                  <circle cx="272" cy="68" r="5" fill="#f8d793"/>
-                </svg>
-              </div>
-              <article class="ticket" id="ticket" aria-label="Our date ticket">
-                <div class="ticket-top"><div><span class="ticket-kicker">The Date Railway</span><h3>Our next little adventure</h3></div><span class="ticket-seal" aria-hidden="true">01<br>PASS</span></div>
-                <div class="ticket-fields">
-                  <div class="ticket-field"><span>Departure</span><strong id="ticket-date"></strong><button type="button" data-edit="date" aria-label="Edit date">Edit</button></div>
-                  <div class="ticket-field"><span>Time</span><strong id="ticket-time"></strong><button type="button" data-edit="time" aria-label="Edit time">Edit</button></div>
-                  <div class="ticket-field"><span>Setting</span><strong id="ticket-setting"></strong><button type="button" data-edit="setting" aria-label="Edit setting">Edit</button></div>
-                  <div class="ticket-field"><span>Route</span><strong id="ticket-route"></strong><button type="button" data-edit="route" aria-label="Edit route">Edit</button></div>
-                  <div class="ticket-field" id="ticket-activity-field"><span>Activity</span><strong id="ticket-activity"></strong><button type="button" data-edit="activity" aria-label="Edit activity">Edit</button></div>
-                  <div class="ticket-field"><span>Lunch</span><strong id="ticket-food"></strong><button type="button" data-edit="food" aria-label="Edit lunch">Edit</button></div>
-                  <div class="ticket-field ticket-wide"><span>The plan</span><strong id="ticket-itinerary"></strong></div>
-                </div>
-                <div class="ticket-perforation" aria-hidden="true"></div>
-                <div class="ticket-foot"><span>YOU + ME</span><span>SEAT NEXT TO ME</span></div>
-              </article>
-              <div class="final-actions"><button class="primary-action" type="button" id="email">Prepare email invite</button><button class="quiet-action" type="button" id="calendar">Download calendar</button><button class="quiet-action" type="button" id="skip">Skip animation</button><button class="quiet-action" type="button" id="replay">Replay arrival</button></div>
-              <p class="email-help">The email draft is addressed to modquack@gmail.com and includes this ticket design and a calendar attachment. Open the download in your email app, review it, then press Send.</p>
-              <p class="feedback" id="status" role="status" aria-live="polite"></p>
-            </section>
-          </div>
-          <div class="page-controls" id="page-controls"><button class="back-action" type="button" id="back">Previous page</button><span class="page-number" id="page-number"></span><button class="primary-action" type="button" id="continue" disabled>Continue <span aria-hidden="true">→</span></button></div>
-        </div>
-      </div>
-
-      <div class="book-cover" id="book-cover">
-        <div class="cover-face cover-front">
-          <div class="cover-border">
-            <p class="cover-edition">A story for two <span>·</span> Passenger’s edition</p>
-            <div class="cover-title"><p>The beginning of</p><h1>The Date<br>Railway</h1></div>
-            <div class="cover-art" aria-hidden="true"><div class="cover-sun"></div><svg viewBox="0 0 560 290" role="presentation"><path d="M10 238h540M40 251h480" fill="none" stroke="currentColor" stroke-width="4"/><path d="M89 189h261v50H89zM122 141h91v48h-91zM131 105h20v36h-20zM228 172h69v17h-69zM352 204h112v35H352zM359 169h91v35h-91zM466 216h31v23h-31z" fill="currentColor"/><path d="M141 154h51v26h-51zM372 179h26v18h-26zM410 179h26v18h-26z" fill="#d9ad77"/><path d="M102 211h237M369 220h78" stroke="#d9ad77" stroke-width="3"/><circle cx="140" cy="246" r="19" fill="currentColor"/><circle cx="210" cy="246" r="19" fill="currentColor"/><circle cx="307" cy="246" r="19" fill="currentColor"/><circle cx="388" cy="246" r="15" fill="currentColor"/><circle cx="443" cy="246" r="15" fill="currentColor"/><path d="M141 86c-16-15 17-26 3-43M165 81c-12-16 13-21 4-39M187 77c-12-12 9-19 3-33" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity=".45"/></svg></div>
-            <p class="cover-copy">A day to choose. A journey to make. A ticket just for us.</p>
-            <button class="open-action" type="button" id="open-book">Open our story <span aria-hidden="true">↗</span></button>
-            <a class="motion-link" id="motion-link" href="?motion=full" hidden>Animations are off · Play the animated version</a>
-            <p class="cover-foot">Volume 01 <span>·</span> The weekend edition</p>
-          </div>
-        </div>
-        <div class="cover-face cover-back" aria-hidden="true"><div class="cover-back-rule"></div><span>The Date Railway</span></div>
-      </div>
-    </div>
+    <section class="planner" id="planner" hidden aria-label="Plan our day"><div class="planner-inner">
+      <div class="planner-top"><p class="planner-intro">The sky is ours. Choose the day.</p><span id="step-count">01 / 07</span></div>
+      <nav class="steps" id="steps" aria-label="Planning steps"></nav>
+      <div class="planner-grid"><div class="step-content">
+        <section class="step" data-step="date" aria-labelledby="date-heading"><h2 id="date-heading" tabindex="-1">When shall we meet?</h2><p class="lead">Choose the day that feels right.</p><div class="choices" role="group" aria-label="Choose a day"><button class="choice" type="button" data-choice="date" data-value="2026-10-10" aria-pressed="false"><span class="choice-index">Saturday</span><strong>October 10</strong><span class="choice-detail">A whole day ahead of us.</span></button><button class="choice" type="button" data-choice="date" data-value="2026-10-11" aria-pressed="false"><span class="choice-index">Sunday</span><strong>October 11</strong><span class="choice-detail">Take it slowly, together.</span></button></div><p class="field-message" id="date-message" role="status"></p></section>
+        <section class="step" data-step="setting" aria-labelledby="setting-heading" hidden><h2 id="setting-heading" tabindex="-1">Where should our day unfold?</h2><p class="lead">A day out in the world, or a cozy one at home?</p><div class="choices" role="group" aria-label="Choose the setting"><button class="choice" type="button" data-choice="setting" data-value="out" aria-pressed="false"><span class="choice-index">Under the city lights</span><strong>Going out</strong><span class="choice-detail">A café, exploring, and dinner together.</span></button><button class="choice" type="button" data-choice="setting" data-value="home" aria-pressed="false"><span class="choice-index">Under our own roof</span><strong>Staying in</strong><span class="choice-detail">Lunch, comfy clothes, and nowhere to rush.</span></button></div></section>
+        <section class="step" data-step="route" aria-labelledby="route-heading" hidden><h2 id="route-heading" tabindex="-1">What sounds like us?</h2><p class="lead">Pick the shape of our day. We can change it later.</p><div class="choices" role="group" aria-label="Choose a plan"><button class="choice" type="button" data-choice="route" data-value="tufting" data-for="out" aria-pressed="false"><span class="choice-index">Make</span><strong>Finish our tufting</strong><span class="choice-detail">Lunch, tufting at two, a mall stroll, and dinner.</span></button><button class="choice" type="button" data-choice="route" data-value="explore" data-for="out" aria-pressed="false"><span class="choice-index">Explore</span><strong>Try something new</strong><span class="choice-detail">Choose an activity, then wander together.</span></button><button class="choice" type="button" data-choice="route" data-value="slow" data-for="home" aria-pressed="false"><span class="choice-index">Rest</span><strong>A slow day in</strong><span class="choice-detail">Shows, rest, and family dinner.</span></button><button class="choice" type="button" data-choice="route" data-value="creative" data-for="home" aria-pressed="false"><span class="choice-index">Create</span><strong>A creative home day</strong><span class="choice-detail">Make something together, then settle in.</span></button></div></section>
+        <section class="step" data-step="activity" aria-labelledby="activity-heading" hidden><h2 id="activity-heading" tabindex="-1">What should we try?</h2><p class="lead">A new memory, made by both of us.</p><div class="choices choice-grid" role="group" aria-label="Choose an activity"><button class="choice" type="button" data-choice="activity" data-value="Bead art" aria-pressed="false"><span class="choice-index">Make</span><strong>Bead art</strong></button><button class="choice" type="button" data-choice="activity" data-value="Rock climbing" aria-pressed="false"><span class="choice-index">Climb</span><strong>Rock climbing</strong></button><button class="choice" type="button" data-choice="activity" data-value="Pottery" aria-pressed="false"><span class="choice-index">Shape</span><strong>Pottery</strong></button><button class="choice" type="button" id="custom-choice" aria-pressed="false"><span class="choice-index">Your idea</span><strong>Something else</strong></button></div><form class="custom-form" id="custom-form" hidden><label for="custom-activity">Your activity</label><div class="custom-input-row"><input id="custom-activity" maxlength="60" autocomplete="off" placeholder="e.g. an escape room" required><button type="submit">Use this idea</button></div></form></section>
+        <section class="step" data-step="food" aria-labelledby="food-heading" hidden><h2 id="food-heading" tabindex="-1">What about lunch?</h2><p class="lead" id="food-lead">Choose our first delicious stop.</p><div class="choices" role="group" aria-label="Choose lunch"><button class="choice" type="button" data-choice="food" data-value="favorite" data-for="out" aria-pressed="false"><span class="choice-index">Familiar</span><strong>Your favourite café</strong><span class="choice-detail">Your usual order, with me across the table.</span></button><button class="choice" type="button" data-choice="food" data-value="new" data-for="out" aria-pressed="false"><span class="choice-index">New</span><strong>A new café to try</strong><span class="choice-detail">Find a little place together.</span></button><button class="choice" type="button" data-choice="food" data-value="eatout" data-for="home" aria-pressed="false"><span class="choice-index">A small outing</span><strong>Eat out for lunch</strong><span class="choice-detail">Then head home for the cozy part.</span></button><button class="choice" type="button" data-choice="food" data-value="delivery" data-for="home" aria-pressed="false"><span class="choice-index">Stay cozy</span><strong>Get lunch delivered</strong><span class="choice-detail">Settle in and take our time.</span></button></div></section>
+        <section class="step" data-step="time" aria-labelledby="time-heading" hidden><h2 id="time-heading" tabindex="-1">When does our day begin?</h2><p class="lead">Choose a start and end time in Malaysia Time (UTC+8).</p><div class="time-fields"><label for="start-time">Start time<input id="start-time" type="time" step="900" required></label><label for="end-time">End time<input id="end-time" type="time" step="900" required></label></div><p class="time-note" id="tufting-note" hidden>Our tufting stop is at 2:00 PM, so include that time.</p><p class="field-message" id="time-message" role="status" aria-live="polite"></p></section>
+        <section class="step final-step" data-step="ticket" aria-labelledby="ticket-heading" hidden><h2 id="ticket-heading" tabindex="-1">It’s a date.</h2><p class="lead">Our little universe, written down just for us.</p><img class="art-preview" id="art-preview" alt="Midnight Observatory invitation with our chosen date and plan"><div class="ticket-summary"><div><span>Day</span><strong id="ticket-date"></strong><button type="button" data-edit="date">Edit</button></div><div><span>Time</span><strong id="ticket-time"></strong><button type="button" data-edit="time">Edit</button></div><div><span>Together</span><strong id="ticket-setting"></strong><button type="button" data-edit="setting">Edit</button></div><div><span>The plan</span><strong id="ticket-route"></strong><button type="button" data-edit="route">Edit</button></div><div id="ticket-activity-field"><span>Activity</span><strong id="ticket-activity"></strong><button type="button" data-edit="activity">Edit</button></div><div><span>Lunch</span><strong id="ticket-food"></strong><button type="button" data-edit="food">Edit</button></div><div class="summary-itinerary"><span>Our day</span><strong id="ticket-itinerary"></strong></div></div><div class="final-actions"><button class="primary-action" type="button" id="email">Preview invitation email</button><button class="secondary-action" type="button" id="calendar">Download calendar</button><button class="secondary-action" type="button" id="save-image">Save invitation image</button><button class="secondary-action" type="button" id="replay-final">Replay scene</button></div><p class="field-message" id="status" role="status" aria-live="polite"></p></section>
+      </div><aside class="recap" aria-label="Your choices so far"><span class="recap-star" aria-hidden="true">✦</span><h3>A sky made for two</h3><p>Every little choice brings the day into focus.</p><ol id="route-list"></ol></aside></div>
+      <div class="page-controls" id="page-controls"><button class="back-action" type="button" id="back">Back</button><span id="page-number"></span><button class="primary-action" type="button" id="continue" disabled>Continue <span aria-hidden="true">→</span></button></div>
+    </div></section>
   </main>
+
+  <dialog class="email-dialog" id="email-dialog" aria-labelledby="email-dialog-title"><div class="dialog-header"><div><p>For modquack@gmail.com</p><h2 id="email-dialog-title">Your invitation, ready to share</h2></div><button class="close-button" type="button" id="close-email" aria-label="Close invitation preview">×</button></div><p class="dialog-note">Review the design below, then choose how to send or save it.</p><iframe id="email-preview" title="Preview of the designed email" sandbox=""></iframe><div class="dialog-actions"><button class="primary-action" type="button" id="send-email" hidden>Send invitation</button><button class="secondary-action" type="button" id="open-email">Open email app</button><button class="secondary-action" type="button" id="download-email">Download designed email</button><button class="secondary-action" type="button" id="share-invitation">Share files</button><button class="secondary-action" type="button" id="dialog-save-image">Save invitation image</button><button class="secondary-action" type="button" id="dialog-calendar">Download calendar</button><button class="text-action" type="button" id="copy-details">Copy details</button></div><p class="dialog-help" id="send-help">Checking email sending…</p><p class="field-message" id="email-status" role="status" aria-live="polite"></p></dialog>
 </body>
 </html>
