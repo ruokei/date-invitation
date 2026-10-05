@@ -17,6 +17,8 @@ test('server reconstructs the plan through planner validation', () => {
   assert.throws(() => normalizePlan({ ...plan(), date: '2026-10-03' }), /unknown date/i);
   assert.throws(() => normalizePlan({ ...plan(), route: 'tufting' }), /route/i);
   assert.throws(() => normalizePlan({ ...plan(), endTime: '11:00' }), /after start/i);
+  assert.throws(() => normalizePlan({ ...plan(), setting: 'out', route: 'tufting', food: 'favorite' }), /staying in/i);
+  assert.throws(() => normalizePlan({ ...plan(), food: 'eatout' }), /staying in/i);
 });
 
 test('sending requires configuration and cannot change the recipient', async (t) => {
@@ -62,6 +64,8 @@ test('configured server sends once with HTML, PNG, and calendar to the fixed rec
   assert.deepEqual(payload.to, ['modquack@gmail.com']);
   assert.equal(payload.attachments.length, 2);
   assert.match(payload.html, /Staying in/);
+  assert.match(payload.html, /tea and a breather/);
+  assert.match(Buffer.from(payload.attachments[0].content, 'base64').toString().replace(/\r\n /g, ''), /tea and a breather/);
   assert.equal(calls[0].init.headers.Authorization, 'Bearer test-key');
 });
 

@@ -45,6 +45,11 @@ test('the optional activity changes the visible stop list', () => {
   assert.deepEqual(getSteps(plan), ['date', 'setting', 'route', 'food', 'time', 'ticket']);
 });
 
+test('a staying-in invitation goes straight from the day to home plans and time', () => {
+  const plan = selectSetting(createPlan(), 'home');
+  assert.deepEqual(getSteps(plan), ['date', 'route', 'time', 'ticket']);
+});
+
 test('selected time is required, ordered, and kept when the day changes', () => {
   let plan = selectDate(createPlan(), '2026-10-10');
   assert.throws(() => selectTime(plan, '20:00', '12:00'), /end.*after.*start/i);
@@ -90,6 +95,17 @@ test('a custom activity becomes part of the itinerary without markup', () => {
   plan = selectFood(plan, 'favorite');
   assert.match(getItinerary(plan), /Tea, pottery & <friends>/);
   assert.equal(plan.activity, 'Tea, pottery & <friends>');
+});
+
+test('the slow home itinerary outlines an unhurried day', () => {
+  let plan = selectSetting(selectDate(createPlan(), '2026-10-10'), 'home');
+  plan = selectRoute(plan, 'slow');
+  plan = selectFood(plan, 'delivery');
+  const itinerary = getItinerary(plan);
+  assert.match(itinerary, /lunch delivered/i);
+  assert.match(itinerary, /favourite shows/i);
+  assert.match(itinerary, /tea/i);
+  assert.match(itinerary, /family dinner/i);
 });
 
 test('calendar matches the selected date and safely encodes custom text', () => {

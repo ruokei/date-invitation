@@ -12,7 +12,8 @@
   const stepNames = { date: 'Day', setting: 'Together', route: 'Plans', activity: 'Activity', food: 'Lunch', time: 'Time', ticket: 'Invitation' };
   const sceneWords = { date: 'The night is ours to choose.', setting: 'Where will our day unfold?', route: 'Every little path leads to us.', activity: 'Something new, together.', food: 'The little things make the day.', time: 'A little time, just for us.', ticket: 'Our little universe, written in the stars.' };
   const presetActivities = ['Bead art', 'Rock climbing', 'Pottery'];
-  let plan = P.createPlan();
+  let plan = P.selectFood(P.selectSetting(P.createPlan(), 'home'), 'delivery');
+  document.querySelectorAll('[data-edit="setting"], [data-edit="food"]').forEach((button) => { button.hidden = true; });
   let current = 'date';
   let opened = false;
   let sceneTimer = 0;

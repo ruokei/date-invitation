@@ -19,6 +19,7 @@ const publicFiles = new Map([
 function normalizePlan(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Choose a complete plan');
   let plan = P.selectDate(P.createPlan(), input.date);
+  if (input.setting !== 'home' || input.food !== 'delivery') throw new Error('This invitation is for staying in this week');
   plan = P.selectSetting(plan, input.setting);
   plan = P.selectRoute(plan, input.route);
   if (plan.route === 'explore') plan = P.selectActivity(plan, input.activity);

@@ -1,6 +1,6 @@
 # Midnight Observatory
 
-A small invitation for Saturday or Sunday, **October 10–11, 2026**. Choose a day, go out or stay in, pick the existing plans and lunch options, and set a start and end time in **Malaysia Time (UTC+8)**. The finished plan drives the page, invitation artwork, email, and calendar event.
+A small staying-in invitation for Saturday or Sunday, **October 10–11, 2026**. Choose a day, a slow or creative home plan, and start and end times in **Malaysia Time (UTC+8)**. Lunch is delivered so the whole day can stay at home. The finished plan drives the page, invitation artwork, email, and calendar event.
 
 ## Preview locally
 

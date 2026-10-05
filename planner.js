@@ -76,7 +76,7 @@
   }
 
   function getSteps(plan) {
-    return ['date', 'setting', 'route', ...(plan.route === 'explore' ? ['activity'] : []), 'food', 'time', 'ticket'];
+    return ['date', ...(plan.setting === 'home' ? [] : ['setting']), 'route', ...(plan.route === 'explore' ? ['activity'] : []), ...(plan.setting === 'home' ? [] : ['food']), 'time', 'ticket'];
   }
 
   function isComplete(plan) {
@@ -106,8 +106,8 @@
     switch (plan.route) {
       case 'tufting': return `${lunch} → tufting at two → a mall stroll → a simple dinner`;
       case 'explore': return `${lunch} → ${plan.activity || 'an activity together'} → a mall stroll → a simple dinner`;
-      case 'slow': return `${lunch} → our favourite shows → rest together → family dinner`;
-      case 'creative': return `${lunch} → make something together → rest together → family dinner`;
+      case 'slow': return `${lunch} → settle in with our favourite shows → tea and a breather → rest together → family dinner`;
+      case 'creative': return `${lunch} → make something together → tea and a breather → share what we made → family dinner`;
       default: return '';
     }
   }
