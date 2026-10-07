@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const P = require('../planner.js');
-const { buildEmailDraft, buildEmailHtml, buildProviderPayload } = require('../email.js');
+const { buildEmailDraft, buildEmailHtml, buildProviderPayload, normalizeRecipient } = require('../email.js');
 
 function planForEmail() {
   let plan = P.selectSetting(P.selectDate(P.createPlan(), '2026-10-10'), 'out');
@@ -30,8 +30,8 @@ test('the email ticket escapes visitor text and displays the chosen time', () =>
 });
 
 test('email draft addresses the recipient and attaches a timed calendar event', () => {
-  const message = buildEmailDraft(planForEmail(), new Date('2026-09-30T12:00:00Z'));
-  assert.match(message, /^To: modquack@gmail\.com\r\n/m);
+  const message = buildEmailDraft(planForEmail(), new Date('2026-09-30T12:00:00Z'), null, ' visitor@example.com ');
+  assert.match(message, /^To: modquack@gmail\.com, visitor@example\.com\r\n/m);
   assert.match(message, /^X-Unsent: 1\r\n/m);
   assert.match(message, /Content-Disposition: attachment; filename="our-date-2026-10-10\.ics"/);
   const html = decodePart(message, 'text/html');
@@ -41,13 +41,21 @@ test('email draft addresses the recipient and attaches a timed calendar event', 
   assert.match(calendar, /DTEND:20261010T120000Z\r\n/);
 });
 
-test('provider email has a fixed recipient, matching calendar, and PNG artwork', () => {
-  const payload = buildProviderPayload(planForEmail(), 'aGVsbG8=', new Date('2026-09-30T12:00:00Z'));
-  assert.deepEqual(payload.to, ['modquack@gmail.com']);
+test('provider email addresses both people with a matching calendar and PNG artwork', () => {
+  const payload = buildProviderPayload(planForEmail(), 'aGVsbG8=', new Date('2026-09-30T12:00:00Z'), ' Visitor@Example.com ');
+  assert.deepEqual(payload.to, ['modquack@gmail.com', 'visitor@example.com']);
   assert.match(payload.subject, /October 10, 2026/);
   assert.match(payload.html, /Saturday, October 10, 2026/);
   assert.match(payload.text, /12:00 PM–8:00 PM MYT/);
   assert.doesNotMatch(payload.text, /attach(?:ed|ment)/i, 'plain text also appears in mailto drafts that cannot add attachments');
   assert.deepEqual(payload.attachments.map(({ filename }) => filename), ['our-date-2026-10-10.ics', 'our-little-universe-2026-10-10.png']);
   assert.match(Buffer.from(payload.attachments[0].content, 'base64').toString(), /DTSTART:20261010T040000Z/);
+});
+
+test('visitor email is normalized, validated, and not duplicated when it matches the fixed address', () => {
+  assert.equal(normalizeRecipient(' Visitor@Example.com '), 'visitor@example.com');
+  for (const invalid of ['', 'visitor', 'visitor@', 'visitor@example', 'visitor..x@example.com', 'visitor@example.com\r\nBcc: stranger@example.com']) {
+    assert.throws(() => normalizeRecipient(invalid), /valid email address/i);
+  }
+  assert.deepEqual(buildProviderPayload(planForEmail(), 'aGVsbG8=', new Date('2026-09-30T12:00:00Z'), 'MODQUACK@gmail.com').to, ['modquack@gmail.com']);
 });

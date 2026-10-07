@@ -10,8 +10,7 @@
   const ROUTES = {
     tufting: { setting: 'out', title: 'Finish our tufting', short: 'Finish tufting', description: 'Lunch, tufting at two, a mall stroll, and dinner.' },
     explore: { setting: 'out', title: 'Explore something new', short: 'Try something new', description: 'Pick an activity, wander together, and have dinner.' },
-    slow: { setting: 'home', title: 'A slow day in', short: 'A slow day in', description: 'Shows, rest, family dinner, and nowhere else to be.' },
-    creative: { setting: 'home', title: 'A creative home day', short: 'Make something', description: 'Make, rest, family dinner, and a cozy night in.' },
+    slow: { setting: 'home', title: 'Our time', short: 'Our time', description: 'A little stretch of the day just for us.' },
   };
 
   const FOODS = {
@@ -21,12 +20,57 @@
     },
     home: {
       eatout: { title: 'Eat out for lunch', detail: 'A small outing before heading home.' },
-      delivery: { title: 'Get lunch delivered', detail: 'Stay in and take it slow.' },
+      delivery: { title: 'Order in for lunch', detail: 'Stay in and take it slow.' },
     },
   };
 
+  const HOME_FIELDS = {
+    homeFood: { label: '🍽️ What sounds good at home?', options: [
+      { id: 'chinese', label: '🥢 Chinese food' }, { id: 'western', label: '🍝 Western food' },
+      { id: 'taiwanese', label: '🍜 Taiwanese food' }, { id: 'japanese', label: '🍣 Japanese food' },
+      { id: 'thai', label: '🌶️ Thai food' }, { id: 'korean', label: '🍲 Korean food' },
+      { id: 'takeout', label: '🥡 Takeout' }, { id: 'snacks', label: '🍿 Snacks and desserts' },
+      { id: 'cook', label: '🍳 Cook together' }, { id: 'discuss', label: '💬 More than one? Let’s talk about it' },
+    ] },
+    homeActivity: { label: '🏡 What else could we do at home?', options: [
+      { id: 'shows', label: '📺 Watch a series' }, { id: 'nap', label: '😴 Rest or take a nap' },
+      { id: 'cuddle', label: '🥰 Cuddle and chill' }, { id: 'bake', label: '🧁 Cook or bake' },
+      { id: 'music', label: '🎵 Listen to music and chat' }, { id: 'open', label: '☁️ Leave the time open' },
+    ] },
+    homeOutfit: { label: '🧸 What should we wear?', options: [
+      { id: 'comfy', label: '🧸 Comfy clothes' }, { id: 'pajamas', label: '🌙 Pajamas' },
+      { id: 'matching', label: '🎨 Matching colors' }, { id: 'wink', label: '😏 You know what I mean' },
+    ] },
+    homeMood: { label: '🕯️ What’s the mood at home?', options: [
+      { id: 'lamps', label: '🕯️ Warm lamps and blankets' }, { id: 'music', label: '🎵 Soft music' },
+      { id: 'movie', label: '🎬 Movie-night glow' }, { id: 'quiet', label: '🌙 Quiet and cozy' },
+      { id: 'later', label: '💭 Decide later' },
+    ] },
+    choreStyle: { label: '🧹 How should we tackle chores?', options: [
+      { id: 'music', label: '🎵 Together with music' }, { id: 'split', label: '⚡ Split them and finish quickly' },
+      { id: 'slow', label: '🌿 Take our time' }, { id: 'later', label: '💭 Decide later' },
+    ] },
+    firstWords: { label: '💌 First thing we’ll say?', options: [
+      { id: 'missed', label: '💌 I missed you' }, { id: 'finally', label: '🥰 Finally, you’re here' },
+      { id: 'kiss', label: '💋 Can I have a kiss?' }, { id: 'hug', label: '🫂 Hug first, talk later' },
+      { id: 'spontaneous', label: '🎈 Let’s see in the moment' },
+    ] },
+    initiative: { label: '💗 Who takes the lead?', options: [
+      { id: 'me', label: '🙋‍♀️ I’ll take the lead' }, { id: 'you', label: '🙋‍♂️ You take the lead' },
+      { id: 'turns', label: '🔄 We’ll take turns' },
+    ] },
+    distance: { label: '🫶 How close shall we be?', options: [
+      { id: 'closer', label: '💞 Sit a little closer' }, { id: 'cuddle', label: '🥰 Cuddle up' },
+      { id: 'room', label: '🌸 A little breathing room' },
+    ] },
+    photos: { label: '📸 Our photo plan?', options: [
+      { id: 'plenty', label: '📸 Take plenty of photos' }, { id: 'candid', label: '🌸 A few candid photos' },
+      { id: 'together', label: '💕 At least one photo together' },
+    ] },
+  };
+
   function createPlan() {
-    return { date: null, setting: null, route: null, activity: null, food: null, startTime: null, endTime: null };
+    return { date: null, setting: null, route: null, activity: null, food: null, startTime: null, endTime: null, homeOptions: {}, optionalChores: { midday: false, late: false }, note: '' };
   }
 
   function selectDate(plan, iso) {
@@ -46,6 +90,7 @@
     if (startTime == null && endTime == null) return { ...plan, startTime: null, endTime: null };
     if (!validTime(startTime) || !validTime(endTime)) throw new Error('Choose a valid time for both fields');
     if (endTime <= startTime) throw new Error('End time must be after start time');
+    if (plan.setting === 'home' && (startTime !== '11:00' || endTime !== '21:00')) throw new Error('This day runs from 11:00 AM to 9:00 PM');
     if (plan.route === 'tufting' && !timeCoversTufting(startTime, endTime)) throw new Error('Include 2:00 PM for the tufting stop');
     return { ...plan, startTime, endTime };
   }
@@ -53,7 +98,7 @@
   function selectSetting(plan, setting) {
     if (!Object.hasOwn(FOODS, setting)) throw new Error('Unknown setting');
     if (plan.setting === setting) return plan;
-    return { ...plan, setting, route: null, activity: null, food: null };
+    return { ...plan, setting, route: setting === 'home' ? 'slow' : null, activity: null, food: null, startTime: setting === 'home' ? '11:00' : null, endTime: setting === 'home' ? '21:00' : null, homeOptions: {}, optionalChores: { midday: false, late: false }, note: '' };
   }
 
   function selectRoute(plan, route) {
@@ -75,12 +120,36 @@
     return { ...plan, food };
   }
 
+  function selectHomeOption(plan, field, value) {
+    if (plan.setting !== 'home' || !Object.hasOwn(HOME_FIELDS, field)) throw new Error('Unknown home preference');
+    if (!HOME_FIELDS[field].options.some((option) => option.id === value)) throw new Error('Unknown option for this preference');
+    return { ...plan, homeOptions: { ...plan.homeOptions, [field]: value } };
+  }
+
+  function selectNote(plan, value) {
+    if (plan.setting !== 'home' || typeof value !== 'string') throw new Error('Choose a valid note');
+    const note = value.trim().replace(/\s+/g, ' ');
+    if (note.length > 180) throw new Error('Keep your note under 180 characters');
+    return { ...plan, note };
+  }
+
+  function selectOptionalChore(plan, period, checked) {
+    if (plan.setting !== 'home' || !['midday', 'late'].includes(period)) throw new Error('Unknown optional chore period');
+    if (typeof checked !== 'boolean') throw new Error('Chore choice must be true or false');
+    return { ...plan, optionalChores: { ...plan.optionalChores, [period]: checked } };
+  }
+
+  function getHomeOptionRows(plan) {
+    return Object.entries(HOME_FIELDS).map(([field, config]) => ({ field, label: config.label, value: config.options.find((option) => option.id === plan.homeOptions?.[field])?.label || '' }));
+  }
+
   function getSteps(plan) {
-    return ['date', ...(plan.setting === 'home' ? [] : ['setting']), 'route', ...(plan.route === 'explore' ? ['activity'] : []), ...(plan.setting === 'home' ? [] : ['food']), 'time', 'ticket'];
+    if (plan.setting === 'home') return ['date', 'time', 'details', 'ticket'];
+    return ['date', 'setting', 'route', ...(plan.route === 'explore' ? ['activity'] : []), 'food', 'time', 'ticket'];
   }
 
   function isComplete(plan) {
-    return Boolean(plan.date && plan.setting && plan.route && plan.food && plan.startTime && plan.endTime && (plan.route !== 'explore' || plan.activity));
+    return Boolean(plan.date && plan.setting && plan.route && plan.food && plan.startTime && plan.endTime && (plan.route !== 'explore' || plan.activity) && (plan.setting !== 'home' || (plan.startTime === '11:00' && plan.endTime === '21:00' && getHomeOptionRows(plan).every((row) => row.value))));
   }
 
   function formatTime(value) {
@@ -100,14 +169,48 @@
     return plan.setting && plan.food ? FOODS[plan.setting][plan.food] || null : null;
   }
 
+  function getTimelineSlots(plan) {
+    if (plan.setting !== 'home') return [];
+    const lunch = getFood(plan)?.title || 'Choose lunch';
+    return [
+      { start: '11:00', end: '12:00', title: lunch },
+      { start: '12:00', end: '14:00', title: plan.optionalChores?.midday ? 'Chores' : 'Our time' },
+      { start: '14:00', end: '16:00', title: 'Our time' },
+      { start: '16:00', end: '18:00', title: plan.optionalChores?.late ? 'Chores' : 'Our time' },
+      { start: '18:00', end: '19:00', title: 'Dinner' },
+      { start: '19:00', end: '20:00', title: 'Chores' },
+      { start: '20:00', end: '21:00', title: 'Wind down together' },
+    ];
+  }
+
+  function getSchedule(plan) {
+    const merged = [];
+    for (const slot of getTimelineSlots(plan)) {
+      const previous = merged[merged.length - 1];
+      if (previous && previous.title === 'Our time' && slot.title === 'Our time' && previous.end === slot.start) previous.end = slot.end;
+      else merged.push({ ...slot });
+    }
+    return merged;
+  }
+
+  function getScheduleTitle(plan, slot) {
+    const choice = HOME_FIELDS.homeActivity.options.find((option) => option.id === plan.homeOptions?.homeActivity);
+    if (!choice || slot.start > '14:00' || slot.end < '16:00') return slot.title;
+    const activity = choice.label.replace(/^[^A-Za-z0-9]+/, '');
+    return `${slot.title} · 2–4 PM: ${activity}`;
+  }
+
+  function getScheduleLines(plan) {
+    return getSchedule(plan).map((slot) => `${formatTime(slot.start)}–${formatTime(slot.end)} ${getScheduleTitle(plan, slot)}`);
+  }
+
   function getItinerary(plan) {
     if (!plan.route) return '';
     const lunch = getFood(plan)?.title || 'Lunch together';
     switch (plan.route) {
       case 'tufting': return `${lunch} → tufting at two → a mall stroll → a simple dinner`;
       case 'explore': return `${lunch} → ${plan.activity || 'an activity together'} → a mall stroll → a simple dinner`;
-      case 'slow': return `${lunch} → settle in with our favourite shows → tea and a breather → rest together → family dinner`;
-      case 'creative': return `${lunch} → make something together → tea and a breather → share what we made → family dinner`;
+      case 'slow': return getScheduleLines(plan).join(' → ');
       default: return '';
     }
   }
@@ -146,7 +249,9 @@
     const calendarStamp = (date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const uid = `${compactDate}-our-little-universe@midnight-observatory.local`;
-    const details = `${getDate(plan).label}, ${getTimeLabel(plan)}. ${ROUTES[plan.route].title}. ${getItinerary(plan)}.`;
+    const preferences = plan.setting === 'home' ? ` Preferences: ${getHomeOptionRows(plan).filter((row) => row.field !== 'homeActivity').map((row) => `${row.label} ${row.value}`).join('; ')}.` : '';
+    const note = plan.setting === 'home' && plan.note ? ` Note: ${plan.note}.` : '';
+    const details = `${getDate(plan).label}, ${getTimeLabel(plan)}. ${ROUTES[plan.route].title}. ${getItinerary(plan)}.${preferences}${note}`;
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -166,7 +271,7 @@
     return lines.map(foldCalendarLine).join('\r\n') + '\r\n';
   }
 
-  const api = { DATES, TIME_ZONE, ROUTES, FOODS, createPlan, selectDate, selectTime, selectSetting, selectRoute, selectActivity, selectFood, getSteps, isComplete, getDate, getFood, getTimeLabel, getItinerary, isExpired, buildCalendar };
+  const api = { DATES, TIME_ZONE, ROUTES, FOODS, HOME_FIELDS, createPlan, selectDate, selectTime, selectSetting, selectRoute, selectActivity, selectFood, selectHomeOption, selectNote, selectOptionalChore, getSteps, isComplete, getDate, getFood, formatTime, getTimeLabel, getHomeOptionRows, getTimelineSlots, getSchedule, getScheduleTitle, getScheduleLines, getItinerary, isExpired, buildCalendar };
   root.DateRailwayPlanner = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

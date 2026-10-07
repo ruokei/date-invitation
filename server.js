@@ -5,6 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const P = require('./planner.js');
 const E = require('./email.js');
+const { normalizePlan, validPng } = require('./invitation-api.js');
 
 const publicFiles = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
@@ -12,35 +13,18 @@ const publicFiles = new Map([
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/planner.js', ['planner.js', 'application/javascript; charset=utf-8']],
   ['/email.js', ['email.js', 'application/javascript; charset=utf-8']],
+  ['/email-api-config.js', ['email-api-config.js', 'application/javascript; charset=utf-8']],
   ['/artwork.js', ['artwork.js', 'application/javascript; charset=utf-8']],
   ['/app.js', ['app.js', 'application/javascript; charset=utf-8']],
 ]);
-
-function normalizePlan(input) {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Choose a complete plan');
-  let plan = P.selectDate(P.createPlan(), input.date);
-  if (input.setting !== 'home' || input.food !== 'delivery') throw new Error('This invitation is for staying in this week');
-  plan = P.selectSetting(plan, input.setting);
-  plan = P.selectRoute(plan, input.route);
-  if (plan.route === 'explore') plan = P.selectActivity(plan, input.activity);
-  plan = P.selectFood(plan, input.food);
-  plan = P.selectTime(plan, input.startTime, input.endTime);
-  if (!P.isComplete(plan)) throw new Error('Choose a complete plan');
-  return plan;
-}
-
-function validPng(value) {
-  if (typeof value !== 'string' || value.length > 1_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return false;
-  const bytes = Buffer.from(value, 'base64');
-  return bytes.length >= 24 && bytes.length <= 750_000 && bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')) && bytes.readUInt32BE(16) === 1200 && bytes.readUInt32BE(20) === 675;
-}
 
 function samplePlan() {
   let plan = P.selectDate(P.createPlan(), '2026-10-10');
   plan = P.selectSetting(plan, 'home');
   plan = P.selectRoute(plan, 'slow');
   plan = P.selectFood(plan, 'delivery');
-  return P.selectTime(plan, '12:00', '20:00');
+  for (const [field, config] of Object.entries(P.HOME_FIELDS)) plan = P.selectHomeOption(plan, field, config.options[0].id);
+  return plan;
 }
 
 function sendJson(res, status, value) {
@@ -88,9 +72,10 @@ function createAppServer(options = {}) {
       try {
         const input = await readJson(req);
         const plan = normalizePlan(input.plan);
+        const email = E.normalizeRecipient(input.email);
         if (!validPng(input.png)) throw new Error('Save a fresh invitation image before sending');
         P.buildCalendar(plan, now());
-        const key = crypto.createHash('sha256').update(JSON.stringify(plan)).digest('hex');
+        const key = crypto.createHash('sha256').update(JSON.stringify({ plan, email })).digest('hex');
         if (sent.has(key)) {
           const result = await sent.get(key);
           return sendJson(res, 200, { sent: true, duplicate: true, id: result.id });
@@ -102,7 +87,7 @@ function createAppServer(options = {}) {
         const request = (async () => {
           // A retry must reproduce the exact request body for Resend's idempotency key.
           // The current clock was already used above to reject expired invitations.
-          const payload = E.buildProviderPayload(plan, input.png, new Date('2026-10-01T00:00:00Z'));
+          const payload = E.buildProviderPayload(plan, input.png, new Date('2026-10-01T00:00:00Z'), email);
           let response;
           try {
             response = await fetchImpl('https://api.resend.com/emails', {

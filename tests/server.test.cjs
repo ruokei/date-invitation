@@ -9,7 +9,7 @@ png.writeUInt32BE(1200, 16);
 png.writeUInt32BE(675, 20);
 
 function plan() {
-  return { date: '2026-10-10', setting: 'home', route: 'slow', activity: null, food: 'delivery', startTime: '12:00', endTime: '20:00' };
+  return { date: '2026-10-10', setting: 'home', route: 'slow', activity: null, food: 'delivery', startTime: '11:00', endTime: '21:00', homeOptions: Object.fromEntries(Object.entries(require('../planner.js').HOME_FIELDS).map(([field, config]) => [field, config.options[0].id])) };
 }
 
 test('server reconstructs the plan through planner validation', () => {
@@ -17,11 +17,12 @@ test('server reconstructs the plan through planner validation', () => {
   assert.throws(() => normalizePlan({ ...plan(), date: '2026-10-03' }), /unknown date/i);
   assert.throws(() => normalizePlan({ ...plan(), route: 'tufting' }), /route/i);
   assert.throws(() => normalizePlan({ ...plan(), endTime: '11:00' }), /after start/i);
-  assert.throws(() => normalizePlan({ ...plan(), setting: 'out', route: 'tufting', food: 'favorite' }), /staying in/i);
-  assert.throws(() => normalizePlan({ ...plan(), food: 'eatout' }), /staying in/i);
+  assert.throws(() => normalizePlan({ ...plan(), setting: 'out', route: 'tufting', food: 'favorite' }), /day at home/i);
+  assert.equal(normalizePlan({ ...plan(), food: 'eatout' }).food, 'eatout');
+  assert.throws(() => normalizePlan({ ...plan(), startTime: '12:00' }), /11:00 AM/i);
 });
 
-test('sending requires configuration and cannot change the recipient', async (t) => {
+test('sending requires server-side email configuration', async (t) => {
   const app = createAppServer({ now: () => now });
   await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
   t.after(() => app.close());
@@ -42,11 +43,11 @@ test('sample designed email can be previewed without sending', async (t) => {
   const html = await response.text();
   assert.match(html, /Our little universe/);
   assert.match(html, /Saturday, October 10, 2026/);
-  assert.match(html, /12:00 PM–8:00 PM MYT/);
+  assert.match(html, /11:00 AM–9:00 PM MYT/);
   assert.match(html, /Staying in/);
 });
 
-test('configured server sends once with HTML, PNG, and calendar to the fixed recipient', async (t) => {
+test('configured server sends once with HTML, PNG, and calendar to both recipients', async (t) => {
   const calls = [];
   const app = createAppServer({ apiKey: 'test-key', from: 'Invitation <dates@example.com>', now: () => now, fetchImpl: async (url, init) => {
     calls.push({ url, init });
@@ -55,18 +56,35 @@ test('configured server sends once with HTML, PNG, and calendar to the fixed rec
   await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
   t.after(() => app.close());
   const base = `http://127.0.0.1:${app.address().port}`;
-  const send = () => fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64') }) });
+  const send = (email = ' Visitor@Example.com ') => fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64'), email, to: 'unapproved@example.com' }) });
   assert.equal((await send()).status, 200);
   assert.equal((await send()).status, 200);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, 'https://api.resend.com/emails');
   const payload = JSON.parse(calls[0].init.body);
-  assert.deepEqual(payload.to, ['modquack@gmail.com']);
+  assert.deepEqual(payload.to, ['modquack@gmail.com', 'visitor@example.com']);
   assert.equal(payload.attachments.length, 2);
   assert.match(payload.html, /Staying in/);
-  assert.match(payload.html, /tea and a breather/);
-  assert.match(Buffer.from(payload.attachments[0].content, 'base64').toString().replace(/\r\n /g, ''), /tea and a breather/);
+  assert.match(payload.html, /Wind down together/);
+  assert.match(Buffer.from(payload.attachments[0].content, 'base64').toString().replace(/\r\n /g, ''), /Wind down together/);
   assert.equal(calls[0].init.headers.Authorization, 'Bearer test-key');
+  assert.equal((await send('another@example.com')).status, 200);
+  assert.equal(calls.length, 2, 'a changed recipient is a separate deliberate send');
+  assert.notEqual(calls[0].init.headers['Idempotency-Key'], calls[1].init.headers['Idempotency-Key']);
+});
+
+test('configured server rejects missing or malformed visitor emails before contacting the provider', async (t) => {
+  let calls = 0;
+  const app = createAppServer({ apiKey: 'test-key', from: 'Invitation <dates@example.com>', now: () => now, fetchImpl: async () => { calls++; return { ok: true, json: async () => ({ id: 'email-1' }) }; } });
+  await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
+  t.after(() => app.close());
+  const base = `http://127.0.0.1:${app.address().port}`;
+  for (const email of [undefined, 'bad-address', 'a@example.com\r\nBcc: other@example.com']) {
+    const response = await fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64'), email }) });
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error, /valid email address/i);
+  }
+  assert.equal(calls, 0);
 });
 
 test('a retry after restart uses the same provider request for its idempotency key', async (t) => {
@@ -78,7 +96,7 @@ test('a retry after restart uses the same provider request for its idempotency k
     } });
     await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
     const base = `http://127.0.0.1:${app.address().port}`;
-    const response = await fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64') }) });
+    const response = await fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64'), email: 'visitor@example.com' }) });
     assert.equal(response.status, 200);
     await new Promise((resolve) => app.close(resolve));
   }
@@ -97,7 +115,7 @@ test('provider connection failures return a useful error and allow a retry', asy
   await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
   t.after(() => app.close());
   const base = `http://127.0.0.1:${app.address().port}`;
-  const send = () => fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64') }) });
+  const send = () => fetch(`${base}/api/send`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ plan: plan(), png: png.toString('base64'), email: 'visitor@example.com' }) });
   const first = await send();
   assert.equal(first.status, 502);
   assert.match((await first.json()).error, /provider/i);

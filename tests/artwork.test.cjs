@@ -33,13 +33,13 @@ test('long activity and itinerary fit in the artwork without losing words', () =
   assert.ok(activityLines.every((line) => line.length <= 45));
 });
 
-test('the fuller staying-in itinerary fits the invitation artwork', () => {
+test('the staying-in schedule fits the invitation artwork', () => {
   let plan = P.selectSetting(P.selectDate(P.createPlan(), '2026-10-10'), 'home');
   plan = P.selectRoute(plan, 'slow');
   plan = P.selectFood(plan, 'delivery');
-  plan = P.selectTime(plan, '12:00', '20:00');
+  for (const [field, config] of Object.entries(P.HOME_FIELDS)) plan = P.selectHomeOption(plan, field, config.options[0].id);
   const svg = A.buildInvitationSvg(plan);
-  const lines = [...svg.matchAll(/<tspan[^>]*class="itinerary-line"[^>]*>([^<]+)<\/tspan>/g)].map((match) => match[1]);
-  assert.equal(lines.join(' '), P.getItinerary(plan));
-  assert.ok(lines.length <= 3);
+  assert.match(svg, /11:00 AM–12:00 PM  Order in for lunch/);
+  assert.match(svg, /12:00 PM–6:00 PM  Our time/);
+  assert.match(svg, /8:00 PM–9:00 PM  Wind down together/);
 });

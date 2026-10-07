@@ -3,6 +3,24 @@
   const P = typeof module !== 'undefined' && module.exports ? require('./planner.js') : root.DateRailwayPlanner;
   const RECIPIENT = 'modquack@gmail.com';
 
+  function normalizeRecipient(value) {
+    const email = typeof value === 'string' ? value.trim().toLowerCase() : '';
+    const parts = email.split('@');
+    const local = parts[0] || '';
+    const domain = parts[1] || '';
+    const labels = domain.split('.');
+    if (email.length > 254 || parts.length !== 2 || local.length > 64 || !/^[a-z0-9!#$%&'*+/=?^_`{|}~.-]+$/.test(local) || local.startsWith('.') || local.endsWith('.') || local.includes('..') || labels.length < 2 || labels.some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)) || labels.at(-1).length < 2) {
+      throw new Error('Enter a valid email address to receive the invitation.');
+    }
+    return email;
+  }
+
+  function recipients(email) {
+    if (!email) return [RECIPIENT];
+    const visitor = normalizeRecipient(email);
+    return visitor === RECIPIENT ? [RECIPIENT] : [RECIPIENT, visitor];
+  }
+
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
   }
@@ -20,14 +38,20 @@
       row('The plan', P.ROUTES[plan.route].title),
       ...(plan.route === 'explore' ? [row('Activity', plan.activity)] : []),
       row('Lunch', P.getFood(plan).title),
-      row('Our day', P.getItinerary(plan)),
+      ...(plan.setting === 'home' ? [
+        ...P.getSchedule(plan).map((slot) => row(`${P.formatTime(slot.start)}–${P.formatTime(slot.end)}`, P.getScheduleTitle(plan, slot))),
+        ...P.getHomeOptionRows(plan).filter((option) => option.field !== 'homeActivity').map((option) => row(option.label, option.value)),
+        ...(plan.note ? [row('💌 Anything you want me to know?', plan.note)] : []),
+      ] : [row('Our day', P.getItinerary(plan))]),
     ].join('');
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Our little universe</title><style>@media(max-width:440px){.shell{padding:12px!important}.main{padding:24px 18px!important}.title{font-size:36px!important}.details td{display:block!important;width:auto!important;padding:8px 16px!important}.details td:first-child{border-bottom:0!important;padding-bottom:0!important}.details td:last-child{padding-top:3px!important}}</style></head><body style="margin:0;padding:0;background:#e8e3dc;color:#13213e;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#e8e3dc"><tr><td class="shell" align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;border-collapse:collapse;background:#f8f3e9"><tr><td align="center" style="padding:44px 24px 42px;background:#101c38;color:#f9f2e4;border-bottom:5px solid #b7965c"><p style="margin:0;color:#d9bc84;font:700 13px Arial,sans-serif;letter-spacing:2px">✦ &nbsp; MIDNIGHT OBSERVATORY &nbsp; ✦</p><p style="margin:22px 0 4px;color:#d9bc84;font:normal 28px Georgia,serif">☽</p><h1 class="title" style="margin:4px 0 12px;color:#f9f2e4;font:normal 46px/1.1 Georgia,serif">Our little universe</h1><p style="margin:0;color:#e5ddcf;font:17px/1.5 Georgia,serif">A little time, just for us.</p></td></tr><tr><td class="main" style="padding:32px 32px 36px"><p style="margin:0 0 16px;color:#13213e;font:19px/1.6 Georgia,serif">I would love to spend this day with you, wherever we decide to go.</p><p style="margin:0 0 25px;color:#4d5564;font:16px/1.55 Arial,sans-serif">Here is the little plan we made beneath the same sky.</p><table class="details" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;border:1px solid #baa474;background:#fffaf0">${details}</table><p style="margin:24px 0 0;color:#4d5564;font:15px/1.6 Arial,sans-serif">The matching invitation artwork and calendar event are attached. I cannot wait to see you.</p></td></tr><tr><td align="center" style="padding:20px;background:#101c38;color:#e5ddcf;font:14px/1.5 Georgia,serif">You &amp; me, under the same sky &nbsp; ✦</td></tr></table></td></tr></table></body></html>`;
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Our little universe</title><style>@media(max-width:440px){.shell{padding:12px!important}.main{padding:24px 18px!important}.title{font-size:36px!important}.details td{display:block!important;width:auto!important;padding:8px 16px!important}.details td:first-child{border-bottom:0!important;padding-bottom:0!important}.details td:last-child{padding-top:3px!important}}</style></head><body style="margin:0;padding:0;background:#e8e3dc;color:#13213e;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#e8e3dc"><tr><td class="shell" align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;border-collapse:collapse;background:#f8f3e9"><tr><td align="center" style="padding:44px 24px 42px;background:#101c38;color:#f9f2e4;border-bottom:5px solid #b7965c"><p style="margin:0;color:#d9bc84;font:700 13px Arial,sans-serif;letter-spacing:2px">✦ &nbsp; MIDNIGHT OBSERVATORY &nbsp; ✦</p><p style="margin:22px 0 4px;color:#d9bc84;font:normal 28px Georgia,serif">☽</p><h1 class="title" style="margin:4px 0 12px;color:#f9f2e4;font:normal 46px/1.1 Georgia,serif">Our little universe</h1><p style="margin:0;color:#e5ddcf;font:17px/1.5 Georgia,serif">A little time, just for us.</p></td></tr><tr><td class="main" style="padding:32px 32px 36px"><p style="margin:0 0 16px;color:#13213e;font:19px/1.6 Georgia,serif">I would love a day with you, from lunch to a quiet evening together.</p><p style="margin:0 0 25px;color:#4d5564;font:16px/1.55 Arial,sans-serif">Here is the little plan we made beneath the same sky.</p><table class="details" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;border:1px solid #baa474;background:#fffaf0">${details}</table><p style="margin:24px 0 0;color:#4d5564;font:15px/1.6 Arial,sans-serif">The matching invitation artwork and calendar event are attached. I cannot wait to see you.</p></td></tr><tr><td align="center" style="padding:20px;background:#101c38;color:#e5ddcf;font:14px/1.5 Georgia,serif">You &amp; me, under the same sky &nbsp; ✦</td></tr></table></td></tr></table></body></html>`;
   }
 
   function buildEmailText(plan) {
     if (!P.isComplete(plan)) throw new Error('Complete the plan before preparing an email');
-    return `Our little universe\n\nA little time, just for us.\n\n${P.getDate(plan).label}\n${P.getTimeLabel(plan)} · Malaysia Time (UTC+8)\n${plan.setting === 'out' ? 'Going out' : 'Staying in'}\n${P.ROUTES[plan.route].title}\n${plan.route === 'explore' ? `Activity: ${plan.activity}\n` : ''}Lunch: ${P.getFood(plan).title}\n\n${P.getItinerary(plan)}\n\nYou & me, under the same sky.`;
+    const schedule = plan.setting === 'home' ? P.getScheduleLines(plan).join('\n') : P.getItinerary(plan);
+    const preferences = plan.setting === 'home' ? `\n\nThe little things\n${P.getHomeOptionRows(plan).filter((row) => row.field !== 'homeActivity').map((row) => `${row.label} ${row.value}`).join('\n')}${plan.note ? `\n💌 Anything you want me to know? ${plan.note}` : ''}` : '';
+    return `Our little universe\n\nA little time, just for us.\n\n${P.getDate(plan).label}\n${P.getTimeLabel(plan)} · Malaysia Time (UTC+8)\n${plan.setting === 'out' ? 'Going out' : 'Staying in'}\n${P.ROUTES[plan.route].title}\n${plan.route === 'explore' ? `Activity: ${plan.activity}\n` : ''}Lunch: ${P.getFood(plan).title}\n\n${schedule}${preferences}\n\nYou & me, under the same sky.`;
   }
 
   function base64(value) {
@@ -42,14 +66,14 @@
     return `Content-Type: ${type}\r\n${disposition ? `Content-Disposition: attachment; filename="${disposition}"\r\n` : ''}Content-Transfer-Encoding: base64\r\n\r\n${encoded}`;
   }
 
-  function buildEmailDraft(plan, now = new Date(), pngBase64 = null) {
+  function buildEmailDraft(plan, now = new Date(), pngBase64 = null, email = null) {
     const calendar = P.buildCalendar(plan, now);
     const suffix = now.toISOString().replace(/[^0-9A-Za-z]/g, '');
     const mixed = `observatory-mixed-${suffix}`;
     const alternative = `observatory-alt-${suffix}`;
     const filename = `our-date-${plan.date}.ics`;
     const parts = [
-      `To: ${RECIPIENT}`,
+      `To: ${recipients(email).join(', ')}`,
       `Subject: Our little universe | ${P.getDate(plan).label}`,
       'X-Unsent: 1',
       'MIME-Version: 1.0',
@@ -74,11 +98,11 @@
     return parts.join('\r\n');
   }
 
-  function buildProviderPayload(plan, pngBase64, now = new Date()) {
+  function buildProviderPayload(plan, pngBase64, now = new Date(), email) {
     if (!/^[A-Za-z0-9+/]+={0,2}$/.test(pngBase64 || '')) throw new Error('Invitation image is required');
     const calendar = P.buildCalendar(plan, now);
     return {
-      to: [RECIPIENT],
+      to: recipients(normalizeRecipient(email)),
       subject: `Our little universe | ${P.getDate(plan).label}`,
       html: buildEmailHtml(plan),
       text: buildEmailText(plan),
@@ -89,7 +113,7 @@
     };
   }
 
-  const api = { RECIPIENT, buildEmailHtml, buildEmailText, buildEmailDraft, buildProviderPayload };
+  const api = { RECIPIENT, normalizeRecipient, buildEmailHtml, buildEmailText, buildEmailDraft, buildProviderPayload };
   root.MidnightEmail = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);
