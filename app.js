@@ -28,7 +28,7 @@
   const params = new URLSearchParams(location.search);
   const storedMotion = (() => { try { return localStorage.getItem('observatory-motion'); } catch { return null; } })();
   const queryMotion = params.get('motion');
-  let fullMotion = queryMotion === 'reduce' ? false : queryMotion === 'full' ? true : storedMotion ? storedMotion !== 'reduced' : !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let fullMotion = queryMotion === 'reduce' ? false : queryMotion === 'full' ? true : storedMotion ? storedMotion !== 'reduced' : true;
   function setMotion(value) {
     fullMotion = value;
     document.documentElement.dataset.motion = value ? 'full' : 'reduced';
