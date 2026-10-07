@@ -25,7 +25,7 @@
   };
 
   const HOME_FIELDS = {
-    homeFood: { label: '🍽️ What sounds good at home?', options: [
+    homeFood: { label: '🍽️ What do we eat today?', options: [
       { id: 'chinese', label: '🥢 Chinese food' }, { id: 'western', label: '🍝 Western food' },
       { id: 'taiwanese', label: '🍜 Taiwanese food' }, { id: 'japanese', label: '🍣 Japanese food' },
       { id: 'thai', label: '🌶️ Thai food' }, { id: 'korean', label: '🍲 Korean food' },
@@ -38,17 +38,18 @@
       { id: 'music', label: '🎵 Listen to music and chat' }, { id: 'open', label: '☁️ Leave the time open' },
     ] },
     homeOutfit: { label: '🧸 What should we wear?', options: [
-      { id: 'comfy', label: '🧸 Comfy clothes' }, { id: 'pajamas', label: '🌙 Pajamas' },
-      { id: 'matching', label: '🎨 Matching colors' }, { id: 'wink', label: '😏 You know what I mean' },
+      { id: 'comfy', label: '🧸 Comfy clothes' }, { id: 'outdoors', label: '☀️ Outdoors special (cuz it’s hot)' },
+      { id: 'pajamas', label: '🌙 Pajamas' }, { id: 'matching', label: '🎨 Let’s try to blind match colors!' },
+      { id: 'wink', label: '😏 You know what I mean' },
     ] },
     homeMood: { label: '🕯️ What’s the mood at home?', options: [
-      { id: 'lamps', label: '🕯️ Warm lamps and blankets' }, { id: 'music', label: '🎵 Soft music' },
-      { id: 'movie', label: '🎬 Movie-night glow' }, { id: 'quiet', label: '🌙 Quiet and cozy' },
-      { id: 'later', label: '💭 Decide later' },
+      { id: 'rest', label: '😌 Rest and chill' }, { id: 'productive', label: '⚡ Efficient and productive' },
+      { id: 'talk', label: '💬 Sit and talk' }, { id: 'later', label: '💭 Decide later' },
     ] },
     choreStyle: { label: '🧹 How should we tackle chores?', options: [
-      { id: 'music', label: '🎵 Together with music' }, { id: 'split', label: '⚡ Split them and finish quickly' },
-      { id: 'slow', label: '🌿 Take our time' }, { id: 'later', label: '💭 Decide later' },
+      { id: 'together', label: '🤝 Do all together' }, { id: 'split', label: '⚡ Split them and finish quickly' },
+      { id: 'productive', label: '✅ Productivity is key' }, { id: 'slow', label: '🌿 Take our time' },
+      { id: 'later', label: '💭 Decide later' },
     ] },
     firstWords: { label: '💌 First thing we’ll say?', options: [
       { id: 'missed', label: '💌 I missed you' }, { id: 'finally', label: '🥰 Finally, you’re here' },
